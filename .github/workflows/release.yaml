@@ -1,0 +1,20 @@
+name: release
+on:
+  push:
+    tags: ['v*.*.*']
+permissions:
+  contents: write          # required to create releases
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package
+        run: zip -r subverter-${{ github.ref_name }}.zip index.html README.md CHANGELOG.md CREDITS.md LICENSE .nojekyll
+      - name: Release
+        uses: softprops/action-gh-release@v3
+        with:
+          generate_release_notes: true
+          files: |
+            index.html
+            subverter-${{ github.ref_name }}.zip
