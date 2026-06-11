@@ -2,6 +2,18 @@
 
 All notable changes to SUBVERTER. Format loosely follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.4.2] — 2026-06-11
+
+Tease & timing fixes, diagnosed straight from a 🩺 Diag dump (the black box works!).
+
+### Fixed
+- **Teases were landing off-beat.** The "sneak the next track's hook in" tease started its snippet at the raw detected drop position (only ±0.25s accurate — up to half a beat off) and launched on any beat. Now the hook is snapped to its own beat grid and teases launch on the bar.
+- **Late transitions started off-phase.** If a frame hitch delayed a transition past its planned start (seen in the wild: a drop swap 0.3s late), it began immediately and rode out of phase. Late starts now re-quantize to the next beat instead.
+
+### Changed
+- **Teases are choosier.** Never against a clashing key, never over a vocal-heavy moment on the on-air track, 2 per mix instead of 3 (3 in ⚡ Epic), and FX intensity below 30% disables them entirely.
+- Teases and re-quantize events are now logged to the 🩺 Diag black box.
+
 ## [1.4.1] — 2026-06-11
 
 Hardening release after a reported in-the-wild failure: a transition/airhorn loop with the decks cutting back and forth.
@@ -119,6 +131,7 @@ Ideas under consideration, not yet built:
 - **Streaming playlist matcher** — import a Spotify/TIDAL playlist and match it against local files (since DRM blocks direct playback).
 - **Request enhancements** — per-request "play next" override, drag-reorder, and a phone-friendly request page.
 
+[1.4.2]: https://github.com/ObsidianTTRPGProject/SUBVERTER/releases/tag/v1.4.2
 [1.4.1]: https://github.com/ObsidianTTRPGProject/SUBVERTER/releases/tag/v1.4.1
 [1.4.0]: https://github.com/ObsidianTTRPGProject/SUBVERTER/compare/v1.0.0...v1.4.1
 [1.0.0]: https://github.com/ObsidianTTRPGProject/SUBVERTER/releases/tag/v1.0.0

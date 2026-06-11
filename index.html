@@ -2593,10 +2593,16 @@ function mixZoneLabel(d,pos,lastDrop){
 // schedule a few hook-teases on the run-up to the mix (build/peak only)
 function buildTeases(d, mixPos){
   const beat=60/d.bpm, td=decks[auto.curId==='A'?'B':'A'];
-  if(!auto.weapons || energyAt(auto.progress())<0.55) return [];
+  if(!auto.weapons || tune.fx<0.3 || energyAt(auto.progress())<0.55) return [];   // FX intensity <30% = no teasing
   if(!td||!td.buffer||!td.drops||!td.drops.length) return [];
-  const list=[];
-  [24,16,8].forEach((b,i)=>{ const pos=mixPos-b*beat; if(pos>d.currentTime()+4*beat) list.push({pos, beats:i+2, fired:false}); });
+  if(td.camelot && d.camelot && !keysCompatible(d.camelot,td.camelot)) return []; // never tease a clashing key
+  const list=[], offs=auto.epic? [24,16,8] : [16,8];                              // 3 teases is Epic territory; 2 otherwise
+  offs.forEach((b,i)=>{
+    const pos=mixPos-b*beat;
+    if(pos<=d.currentTime()+4*beat) return;
+    if(vocalAt(d,pos)>0.55) return;                                               // don't stomp on the on-air vocal/hook
+    list.push({pos, beats:i+2, fired:false});
+  });
   return list;
 }
 function fireDueTeases(cur){
@@ -2607,7 +2613,8 @@ function fireDueTeases(cur){
     if(ts.fired) continue;
     if(cur.currentTime() >= ts.pos-0.04){
       ts.fired=true;
-      teaseHook(td, cur.nextBeatTime(0.08,1), ts.beats);
+      teaseHook(td, cur.nextBeatTime(0.08,4), ts.beats);     // launch on the BAR, not any beat
+      dlog('tease',{beats:ts.beats});
       toast('tease ▸ here comes the next one…');
     }
   }
@@ -2629,7 +2636,12 @@ function teaseHook(inc, when, beats){
   g.gain.exponentialRampToValueAtTime(lvl,when+0.012);
   g.gain.setValueAtTime(lvl,when+dur-0.04);
   g.gain.exponentialRampToValueAtTime(0.0001,when+dur);     // yank it away — build the want
-  src.start(when, Math.max(0, inc.drops[0]));
+  // snap the hook to its own beat grid — the raw detected drop is only ±0.25s accurate,
+  // which is up to half a beat off and made teases land out of phase
+  const ib=60/inc.bpm;
+  let hookOff=inc.beatOffset + Math.round((inc.drops[0]-inc.beatOffset)/ib)*ib;
+  if(!(hookOff>=0)) hookOff=Math.max(0, inc.drops[0]);
+  src.start(when, hookOff);
   src.stop(when+dur+0.7);
 }
 
@@ -2694,6 +2706,10 @@ function beginTransition(dur, when, styleOverride, quietFx){
   auto.glide=null;                                // a new mix takes over any running tempo glide
   lockTempo(td, fd.effBPM);                       // beat-lock incoming to outgoing tempo
   when = when || fd.nextBeatTime(0.12, 4);        // bring the new track in on the bar
+  if(when < AC.currentTime+0.05){                 // running late (frame hitch / hidden tab)?
+    when = fd.nextBeatTime(0.08, 1);              // re-quantize to the beat grid — never start off-phase
+    dlog('mix-requantized',{lateBy:+(AC.currentTime-when).toFixed(2)});
+  }
   let style = styleOverride || selectTransition(fd,td);
   const peak = energyAt(auto.progress())>=0.86;
   const beatReal=60/fd.effBPM;
