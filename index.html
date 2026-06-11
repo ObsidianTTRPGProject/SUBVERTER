@@ -1612,12 +1612,19 @@ function rewindReload(reloadOffset){
   rev.playbackRate.setValueAtTime(1.0,t); rev.playbackRate.exponentialRampToValueAtTime(2.9,t+0.55);
   rev.start(t); rev.stop(t+0.6);
   toast('REWIND! … pull up!');
-  const back=Math.max(0, reloadOffset||0);
+  const back=Math.max(0, reloadOffset||0), entryAtCut=d.entry, bufAtCut=d.buffer;
+  dlog('rewind',{deck:id, pos:+pos.toFixed(1), back:+back.toFixed(1)});
   setTimeout(()=>{
+    rewinding=false;
+    // if a transition / recovery / track-load took this deck over during the spinback,
+    // restoring now would fight it for the crossfader (observed: parked the fader on a
+    // silent deck and stopped the music) — stand down instead
+    if(typeof auto!=='undefined' && auto.state==='running' && (auto.curId!==id || d.entry!==entryAtCut || d.buffer!==bufAtCut)){
+      dlog('rewind','restore aborted — deck changed during spinback'); return;
+    }
     d.offset=back; d.play(); setPlayUI(id,true);
     setCrossfade(id==='A'?0:1,true); setLowEQ(id,0); setVol(id,0.85);
     const now=AC.currentTime; airhorn(now); impact(now);
-    rewinding=false;
   },620);
 }
 
@@ -2458,7 +2465,7 @@ function replayCurrent(){
   try{ d.stop(); }catch(_){}
   d.offset=off; d.play(); setPlayUI(auto.curId,true);
   setCrossfade(auto.curId==='B'?1:0,true); setLowEQ(auto.curId,0); setVol(auto.curId,0.85);
-  auto.mixPos=null; auto.teasePlan=null; auto.ddArmed=false;
+  auto.mixPos=null; auto.teasePlan=null; auto.ddArmed=false; auto._onAirAt=AC.currentTime;
   dlog('replay',{track:(d.entry&&d.entry.name)||'?', from:+off.toFixed(1)});
   toast('↻ crate ran dry — looping current track');
 }
@@ -2513,7 +2520,7 @@ async function startParty(){
   const t0=pickTrack(targetBPMat(0)); markUsed(t0); dequeueWish(t0);
   await loadEntryToDeck(t0,'A'); applyRate('A',targetBPMat(0));
   setLowEQ('A',0); setVol('A',0.85); setSegEnd('A'); setCrossfade(0,true);
-  A.play(); setPlayUI('A',true); auto.curId='A';
+  A.play(); setPlayUI('A',true); auto.curId='A'; auto._onAirAt=AC.currentTime;
 
   await preloadNext('B');     // queue the next track on deck B, bass killed, ready to swap
   updateNowPlaying();
@@ -2562,8 +2569,13 @@ function planMix(d){
   minPlay*=(1.18-0.35*energyAt(auto.progress()));                  // festival pacing: warm-up rides long, peak time mixes quick
   minPlay=Math.min(minPlay, dur*0.92);
   auto.minPlay=minPlay;
+  // airtime floor: a track that ENTERED mid-song (drop swap / double drop / drop cut) is
+  // already past minPlay positionally — guarantee real on-air time before the next exit
+  const minAir=Math.min(70, Math.max(25, minPlay*0.6));
+  auto.minAir=minAir;
+  const air=AC.currentTime-(auto._onAirAt||auto.startT||0);
   const now=d.currentTime();
-  const searchStart=Math.max(minPlay, now+8*beat);
+  const searchStart=Math.max(minPlay, now+8*beat, now+Math.max(0,(minAir-air))*d.effRate);
   const maxPos=dur-Math.max(6*beat, transDurNow()+1.0);   // the whole blend must finish before the audio ends
   const lastDrop=(d.drops&&d.drops.length)? Math.max(...d.drops) : 0;
   let k=Math.ceil((searchStart-d.beatOffset)/phrase);
@@ -2848,7 +2860,7 @@ function finalizeTransition(tr){
   setFilterUI(tr.from, 50); setFilterUI(tr.to, 50);   // undo any filter sweeps (and snap the sliders back to centre)
   echoUI(false);                // drop the Echo Out light (unless manual echo is on)
   setCrossfade(tr.to==='B'?1:0,true);
-  auto.curId=tr.to; auto.trans=null; auto.ddArmed=false; auto.mixPos=null; auto.teasePlan=null; auto._sangThisTrack=false;
+  auto.curId=tr.to; auto.trans=null; auto.ddArmed=false; auto.mixPos=null; auto.teasePlan=null; auto._sangThisTrack=false; auto._onAirAt=AC.currentTime;
   setSegEnd(tr.to);
   dlog('mix-end',{style:tr.style||tr.mode, nowOn:tr.to});
   startRateGlide(tr.to, targetBPMat(auto.progress()));   // glide back onto the energy curve — no pitch lurch
@@ -3080,7 +3092,7 @@ function _autoTick(){
   // WATCHDOG: the on-air track ended but no mix is running — we missed it (a stall, or the tab was
   // backgrounded past the track's end while rAF was paused). Recover instead of sitting in silence.
   if(!auto.winding){
-    const ended = !cur.playing || cur.currentTime() >= playEnd(cur) - 0.05;
+    const ended = !rewinding && (!cur.playing || cur.currentTime() >= playEnd(cur) - 0.05);
     if(ended){
       // rate-limit recoveries, and if they keep happening treat it as a storm: hold the
       // current track instead of endlessly cutting between (possibly broken) decks
@@ -3119,6 +3131,7 @@ function _autoTick(){
   // crowd-sing moment: at peak, on a sustained vocal, cut the music for a bar (rare, once per track)
   if(auto.weapons && !auto.winding && !auto.trans && !rewinding && cur.playing && !auto._sangThisTrack
      && energyAt(p)>=0.85 && tNow>(auto.minPlay||0)*0.5 && AC.currentTime>(auto._singGate||0)
+     && AC.currentTime-(auto._onAirAt||0) >= (auto.minAir||30)*0.5
      && auto.mixPos!=null && tNow < auto.mixPos-12*(60/cur.bpm)){
     auto._singGate=AC.currentTime+8;                                  // only consider every ~8s
     const beatTk=60/cur.bpm;
@@ -3130,16 +3143,28 @@ function _autoTick(){
 
   // ⚡ EPIC: the occasional rewind-reload encore at a big peak — re-drop the banger
   if(auto.epic && auto.weapons && !auto.winding && !auto.ddArmed && !rewinding && cur.playing
-     && energyAt(p)>=0.9 && tNow>(auto.minPlay||0)+8 && AC.currentTime>(auto._epicGate||0)){
+     && energyAt(p)>=0.9 && tNow>(auto.minPlay||0)+8 && AC.currentTime>(auto._epicGate||0)
+     && AC.currentTime-(auto._onAirAt||0) >= (auto.minAir||30)){
     auto._epicGate=AC.currentTime+9;                                    // only consider every ~9s
-    if(AC.currentTime-(auto._lastRewind||0)>40 && tNow>20 && Math.random()<0.3){
+    if(AC.currentTime-(auto._lastRewind||0)>120 && tNow>20 && Math.random()<0.2){
       autoRewind(); updateApStatus(); return;
     }
   }
 
-  // drop-on-drop double drop near the planned mix (peak, once per track, only after the minimum play)
-  if(peak && auto.weapons && !auto.ddArmed && !auto.winding && td.buffer && td.cued && cur.playing && tNow>=(auto.minPlay||0)){
-    if(maybeDoubleDrop(cur,td)){ auto.ddArmed=true; updateApStatus(); return; }
+  // drop-on-drop double drop near the planned mix — a rare highlight, not a habit: it needs
+  // real airtime behind it, sits on a 150s cooldown, and respects the circuit breaker
+  // (previously it bypassed all pacing — a drop-entered track re-armed instantly, chaining
+  // DOUBLE DROP every ~30s at peak)
+  if(peak && auto.weapons && !auto.ddArmed && !auto.winding && td.buffer && td.cued && cur.playing
+     && tNow>=(auto.minPlay||0)
+     && AC.currentTime-(auto._onAirAt||0) >= (auto.minAir||30)
+     && AC.currentTime-(auto._lastDD||-1e9) >= 150
+     && AC.currentTime >= (auto._coolUntil||0)){
+    if(maybeDoubleDrop(cur,td)){
+      auto.ddArmed=true; auto._lastDD=AC.currentTime; auto._lastTransAt=AC.currentTime;
+      dlog('mix',{style:'doubledrop', from:auto.curId, to:td.id});
+      updateApStatus(); return;
+    }
   }
 
   // commit the mix at the planned phrase boundary

@@ -2,6 +2,15 @@
 
 All notable changes to SUBVERTER. Format loosely follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.4.3] — 2026-06-11
+
+Pacing & dead-air fixes, diagnosed from three 🩺 Diag dumps of a live session.
+
+### Fixed
+- **Double-drop chain reaction.** "Minimum play" measured track *position*, but a double-drop-entered track starts already deep in the song — so it instantly re-armed, chaining DOUBLE DROP every ~30s at peak. The auto-pilot now tracks real **airtime** per song: mix planning, double drops, Epic rewinds and crowd-sings all require genuine on-air listening time. Double drops also gained a 150s cooldown and now respect the circuit breaker + black-box logging (they bypassed all three).
+- **Music stopping after an Epic rewind.** The watchdog could mistake the rewind's 0.6s spinback window for "track ended" and cut to the other deck; the rewind's delayed restore then snapped the crossfader back to a deck the recovery had just stopped/reloaded — parking the fader on silence with no recovery path. The watchdog now ignores the rewind window, and the rewind restore stands down if its deck was taken over mid-spinback.
+- Epic rewinds spaced to ≥120s (were possible every ~40s at sustained peak).
+
 ## [1.4.2] — 2026-06-11
 
 Tease & timing fixes, diagnosed straight from a 🩺 Diag dump (the black box works!).
@@ -131,6 +140,7 @@ Ideas under consideration, not yet built:
 - **Streaming playlist matcher** — import a Spotify/TIDAL playlist and match it against local files (since DRM blocks direct playback).
 - **Request enhancements** — per-request "play next" override, drag-reorder, and a phone-friendly request page.
 
+[1.4.3]: https://github.com/ObsidianTTRPGProject/SUBVERTER/releases/tag/v1.4.3
 [1.4.2]: https://github.com/ObsidianTTRPGProject/SUBVERTER/releases/tag/v1.4.2
 [1.4.1]: https://github.com/ObsidianTTRPGProject/SUBVERTER/releases/tag/v1.4.1
 [1.4.0]: https://github.com/ObsidianTTRPGProject/SUBVERTER/compare/v1.0.0...v1.4.1
