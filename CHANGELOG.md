@@ -119,4 +119,6 @@ Ideas under consideration, not yet built:
 - **Streaming playlist matcher** — import a Spotify/TIDAL playlist and match it against local files (since DRM blocks direct playback).
 - **Request enhancements** — per-request "play next" override, drag-reorder, and a phone-friendly request page.
 
-[1.0.0]: https://github.com/OWNER/REPO/releases/tag/v1.0.0
+[1.4.1]: https://github.com/ObsidianTTRPGProject/SUBVERTER/releases/tag/v1.4.1
+[1.4.0]: https://github.com/ObsidianTTRPGProject/SUBVERTER/compare/v1.0.0...v1.4.1
+[1.0.0]: https://github.com/ObsidianTTRPGProject/SUBVERTER/releases/tag/v1.0.0
