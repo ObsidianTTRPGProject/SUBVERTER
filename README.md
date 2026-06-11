@@ -8,7 +8,7 @@ A self-contained, single-file browser DJ rig built on the Web Audio API. No buil
 
 Open `index.html` in a recent Chrome or Edge. Drag in audio files (or use **+Files** / **Connect folder**), hit play on a deck, and either mix manually or press **START PARTY** to let the auto-pilot run the set.
 
-For the full feature set you'll want to host it (see below) — a few capabilities need a secure context (HTTPS or `localhost`), notably Web MIDI for the controller.
+**Using a DDJ-200 / MIDI controller?** Don't open the file directly — double-click **`Start-SUBVERTER.bat`** (Windows) or **`start-subverter.sh`** (macOS/Linux) instead. It serves the app on `localhost` (no install, no admin rights) and opens your browser; Chrome only grants the Web MIDI permission to `http(s)` pages, never to `file://`. Once allowed, the controller auto-reconnects on every load. Hosting it (see below) works too.
 
 ## Host it on GitHub Pages
 
@@ -33,13 +33,15 @@ The included `.nojekyll` file tells Pages to skip Jekyll processing and serve ev
 
 ## Features
 
-**Decks & mixing.** Two decks with independent EQ (low/mid/high), filter sweep, tempo/pitch, cue, and an equal-power crossfader. Master echo (delay) and reverb sends. Per-deck waveform with beat grid, drop flags, vocal-presence band, and mix-point markers.
+**Decks & mixing.** Two decks with independent EQ (low/mid/high), filter sweep, tempo/pitch, cue, and an equal-power crossfader. Master echo (delay) and reverb sends. Per-deck waveform with beat grid, drop flags, vocal-presence band, and mix-point markers. Every track is loudness-normalized from analysis and a master limiter keeps stacked drops from clipping.
+
+**⛶ Stage view.** One click for fullscreen, beat-reactive party visuals — radial spectrum, kick-flash synced to the live beat grid, now playing, next-mix countdown, and big animated callouts for every transition. Made for the TV/projector at the party.
 
 **Track analysis.** On load each track is analysed for BPM + beat offset, musical key (mapped to Camelot for harmonic mixing), energy envelope, vocal presence, and structural drops. The auto-pilot and transition planner use all of it.
 
-**Auto-pilot DJ.** `START PARTY` runs an autonomous set: it builds an energy curve over your chosen set length, picks the next track for BPM/key/energy fit, and mixes at phrase-aware boundaries using structure-aware timing (it waits for musical mix points rather than mixing on a fixed timer). Recovers automatically if the crate runs dry or a stream URL expires.
+**Auto-pilot DJ.** `START PARTY` runs an autonomous set: it builds an energy curve over your chosen set length, picks the next track for BPM/key/energy fit, and mixes at phrase-aware boundaries using structure-aware timing (it waits for musical mix points rather than mixing on a fixed timer). Recovers automatically if the crate runs dry or a stream URL expires. Pacing follows the energy curve (long rides in the warm-up, quick mixing at peak), incoming tracks enter near their first drop at high energy, and at peak vocal moments it occasionally cuts the music for a bar so the crowd sings the hook back.
 
-**Transition repertoire.** A library of named transition styles (blend, filter fade, echo-out, hard cut, double-drop, tops-swap, build-up, silence-drop) selected to fit the two tracks and your "adventure" setting — grounded in real DJ technique, not random.
+**Transition repertoire.** A library of named transition styles (blend, filter fade, echo-out, hard cut, double-drop, tops-swap, build-up, silence-drop, spinback, drop-swap) selected to fit the two tracks and your "adventure" setting — grounded in real DJ technique, not random. Blends are pre-scheduled on the audio clock (sample-accurate equal-power fades with a true ~2-beat bass swap at the phrase point), and the tempo glides back onto the energy curve after each mix instead of snapping.
 
 **EPIC mode.** Forces the energy higher: beat-roll stutters into double-drops, occasional rewind-and-reload, extra peak-time sirens.
 
@@ -49,13 +51,13 @@ The included `.nojekyll` file tells Pages to skip Jekyll processing and serve ev
 
 **Online crate.** Load tracks from a direct URL, a GitHub repo, Jamendo search, or SoundCloud search (you supply a SoundCloud client ID). Note: DRM/HLS-only sources can't be decoded by Web Audio; progressive/downloadable audio works.
 
-**Hardware: Pioneer DDJ-200.** Full Web MIDI mapping — jog nudge + seek, play/cue, sync, 3-band EQ, channel faders, crossfader, CFX filters, tempo, headphone-cue hard-swap, master-cue centre, and a transition-FX trigger. (Tempo range and true jog-scratch are intentionally not mapped; scratch needs an AudioWorklet engine, which isn't built.)
+**Hardware: Pioneer DDJ-200.** Full Web MIDI mapping — jog nudge + seek, play/cue, sync, 3-band EQ, channel faders, crossfader, CFX filters, tempo, headphone-cue hard-swap, master-cue centre, and a transition-FX trigger. Auto-reconnects on load once the permission is granted; use the bundled launcher (`Start-SUBVERTER.bat` / `start-subverter.sh`) when running from disk. (Tempo range and true jog-scratch are intentionally not mapped; scratch needs an AudioWorklet engine, which isn't built.)
 
-**16-pad performance grid.** Two decks × 8 pads with a SHIFT layer, fully remappable to any FX/roll/loop/control action. Works from the DDJ-200's pads and on-screen. Mappings aren't persisted across reloads yet (see roadmap).
+**16-pad performance grid.** Two decks × 8 pads with a SHIFT layer, fully remappable to any FX/roll/loop/control action. Works from the DDJ-200's pads and on-screen. Mappings persist across reloads.
 
 **Request queue.** A slide-out drawer to search the crate and queue requests. The auto-pilot steers toward them: it plays a request the moment it fits the current BPM/key, otherwise biases track selection toward bridge tracks that close the gap, widening tolerance each pass so it always lands.
 
-**Mix tuning.** Live sliders for patience (how long tracks play), FX density, adventurousness, and transition length.
+**Mix tuning.** Live sliders for patience (how long tracks play), FX density, adventurousness, and transition length. Settings, toggles and pad mappings persist between sessions; the screen stays awake while a set runs. The crate sorts by name/BPM/key/energy, and any request can be forced to play next.
 
 ## Browser support
 

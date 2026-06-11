@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>SUBVERTER — Rave Mixing Console</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -49,7 +49,11 @@
     content:"";position:fixed;inset:0;pointer-events:none;z-index:999;opacity:.05;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
-  .wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:22px 22px 60px}
+  .wrap{
+    position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:22px 22px 60px;
+    padding-left:max(22px, env(safe-area-inset-left));
+    padding-right:max(22px, env(safe-area-inset-right));
+  }
 
   header{
     display:flex;align-items:center;justify-content:space-between;
@@ -147,8 +151,10 @@
   .controls{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
   .eqcol{display:flex;flex-direction:column;align-items:center;gap:8px}
   .eqlabel{font-size:9px;color:var(--dim);letter-spacing:.2em;text-transform:uppercase}
-  .vert{height:120px;display:flex;align-items:center;justify-content:center}
-  .vert input[type=range]{width:120px;transform:rotate(-90deg)}
+  /* vertical EQ sliders: absolutely centred so the rotated input's 120px layout box
+     can't overflow its column and get clipped at the deck edges on narrow screens */
+  .vert{height:120px;width:34px;position:relative}
+  .vert input[type=range]{position:absolute;width:120px;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-90deg);margin:0}
   .eqval{font-size:9px;color:var(--dim);min-height:11px}
 
   .knobrow{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
@@ -371,6 +377,65 @@
   .reqitem .rm:hover{color:var(--danger)}
   .reqnote{font-size:10px;color:var(--dim);line-height:1.55}
   .reqempty{font-size:11px;color:var(--dim);padding:14px;text-align:center}
+  #peakBpm{width:150px}
+
+  /* ---------- touch & small screens ---------- */
+  @media(pointer:coarse){
+    input[type=range]{height:6px}
+    input[type=range]::-webkit-slider-thumb{width:22px;height:22px}
+    input[type=range]::-moz-range-thumb{width:22px;height:22px}
+  }
+  @media(max-width:520px){
+    .wrap{padding:12px 10px 46px;padding-left:max(10px, env(safe-area-inset-left));padding-right:max(10px, env(safe-area-inset-right))}
+    header{gap:10px;margin-bottom:14px}
+    .logo{font-size:22px;letter-spacing:.12em}
+    .tag{display:none}
+    .master{flex:1;min-width:0}
+    .vu{flex:1;min-width:60px;width:auto}
+    .board{gap:12px}
+    .deck{padding:12px}
+    .center{padding:12px 10px}
+    .controls{gap:8px}
+    .knobrow{gap:8px}
+    .online,.weapons,.autopilot{padding:12px}
+    .wpn-grid{grid-template-columns:1fr 1fr;gap:8px}
+    .ap-grid{gap:12px}
+    .ap-controls{gap:12px}
+    .seg button{padding:8px 7px;font-size:10.5px}
+    .tunes{gap:8px 12px}
+    .tune{flex:1 1 calc(50% - 12px)}
+    .tune input{width:100%}
+    #peakBpm{width:100%;max-width:220px}
+    .startbtn{flex:1;margin-left:0}
+    .energy-wrap{height:110px}
+    .help{padding:12px}
+    .help ul{grid-template-columns:1fr}
+    .reqtab{padding:12px 7px;font-size:10px}
+    .reqdrawer{width:100%;max-width:100vw}
+    .stagebtn{padding:7px 9px;font-size:10px}
+  }
+
+  /* ---------- stage view (fullscreen party visuals) ---------- */
+  .stagebtn{font-size:11px;letter-spacing:.1em;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);color:var(--ink);cursor:pointer;text-transform:uppercase;white-space:nowrap;transition:.12s}
+  .stagebtn:hover{border-color:var(--A);color:var(--A)}
+  .stage{position:fixed;inset:0;z-index:200;background:#000}
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%}
+  .stage-ui{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:6vh 4vw;pointer-events:none;text-align:center}
+  .st-callout{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:7vmin;letter-spacing:.1em;text-transform:uppercase;color:#fff;text-shadow:0 0 30px var(--acid),0 0 90px var(--A);opacity:0;transition:opacity .2s;min-height:9vmin}
+  .st-callout.show{opacity:1;animation:stpop .4s ease-out}
+  @keyframes stpop{0%{transform:scale(1.45)}100%{transform:scale(1)}}
+  .st-title{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:4.6vmin;letter-spacing:.06em;color:#fff;text-shadow:0 0 26px rgba(25,246,232,.7);max-width:92vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .st-sub{font-size:2.1vmin;color:#9aa0bd;letter-spacing:.3em;text-transform:uppercase;margin-top:1.2vh}
+  .st-next{font-size:2.1vmin;color:var(--acid);letter-spacing:.2em;margin-top:.8vh;text-transform:uppercase;min-height:2.6vmin}
+  .st-close{position:absolute;top:18px;right:22px;z-index:2;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--dim);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:12px}
+  .st-close:hover{color:#fff;border-color:var(--dim)}
+  /* crate sort + energy badges */
+  .lib-sort{background:none;border:1px solid var(--line);color:var(--dim);border-radius:5px;font-size:9px;letter-spacing:.1em;padding:2px 8px;cursor:pointer;text-transform:uppercase;margin-left:auto;margin-right:8px}
+  .lib-sort:hover{color:var(--ink);border-color:var(--dim)}
+  .lib-nrg{width:26px;height:5px;background:#15161f;border-radius:3px;overflow:hidden;flex:none}
+  .lib-nrg i{display:block;height:100%;background:linear-gradient(90deg,var(--acid),var(--amber),var(--danger))}
+  .reqitem .nx{background:none;border:1px solid var(--line);color:var(--acid);cursor:pointer;font-size:11px;border-radius:5px;padding:2px 6px;line-height:1}
+  .reqitem .nx:hover{border-color:var(--acid)}
   .hidden{display:none}
 </style>
 </head>
@@ -382,6 +447,7 @@
       <div class="tag">Rave&nbsp;Mixing&nbsp;Console</div>
     </div>
     <div class="master">
+      <button class="stagebtn" id="stageBtn" title="Fullscreen, beat-reactive party visuals — put this on the TV/projector">⛶ Stage</button>
       <div class="mvol">
         <span>MASTER</span>
         <input id="masterVol" type="range" min="0" max="1.4" step="0.01" value="0.95" style="width:90px">
@@ -516,6 +582,7 @@
       <span class="ahlbl">Controller</span>
       <button class="ahbtn" id="midiBtn" title="Connect a USB-MIDI DJ controller (Chrome/Edge, served over http/https)">🎛 Connect MIDI</button>
       <button class="ahbtn" id="liteBtn" title="Pause the waveform/energy animations to cut input latency while performing">Lite UI</button>
+      <button class="ahbtn" id="diagBtn" title="Save a diagnostics file — recent mix events, deck/crate state, and any crash snapshot — for troubleshooting">🩺 Diag</button>
       <button class="ahbtn" id="padsBtn" title="Show the mappable 16-pad performance grid">🎚 Pads</button>
       <span id="midiStat" class="ahval" style="min-width:auto;flex:1">DDJ-200 &amp; standard USB-MIDI controllers · click to connect</span>
     </div>
@@ -599,7 +666,7 @@
             <input type="hidden" id="setLen" value="60">
           </div>
           <div class="ctl"><label>Peak BPM · <b id="peakBpmLbl" style="color:var(--ink)">134</b></label>
-            <input type="range" id="peakBpm" min="124" max="150" step="1" value="134" style="width:150px">
+            <input type="range" id="peakBpm" min="124" max="150" step="1" value="134">
           </div>
           <div class="ctl"><label title="A soft floor only — the DJ then waits for a sparse, vocal-free exit (outro/breakdown). It is NOT a hard timer.">Min/track</label>
             <div class="seg" id="segSeg">
@@ -641,7 +708,7 @@
           <div class="np-row k"><span>Key</span><b id="npKey">—</b></div>
         </div>
         <div class="lib">
-          <div class="lib-head"><span>Crate</span><span id="libCount">0 tracks</span></div>
+          <div class="lib-head"><span>Crate</span><button class="lib-sort" id="libSortBtn" title="Sort: name / BPM / key / energy">A–Z</button><span id="libCount">0 tracks</span></div>
           <div class="lib-list" id="libList"><div class="lib-empty">No folder loaded yet.</div></div>
         </div>
       </div>
@@ -674,13 +741,30 @@
       <li><b>Harmonic</b> picks the next track in a compatible key. With <b>Auto-FX</b> on it <b>teases</b> — sneaking the next track's hook in for a few beats and snatching it back to build the want — then commits with a phrase-locked blend or a real drop-on-drop double drop.</li>
       <li><b>⚡ Epic</b> = full crowd-killer mode. On top of Auto-FX it stutters a <b>beat-roll build</b> into double drops for that "rrrr-BOOM", throws an extra <b>siren</b> on big peaks, and now and then <b>rewinds the banger</b> — spinning the on-air track back and re-dropping it at the drop (not the intro), so the energy never dips. Use it when you want chaos; leave it off for a smoother set. (Turning Epic on also switches Auto-FX on.)</li>
       <li><b>Mix tuning</b> (live — adjust mid-set): <b>Track length</b> = how long tracks ride before mixing (short ▸ long / outro); <b>Adventurous</b> = smooth blends &amp; tops layers ◂▸ more cuts, loop-builds &amp; silence slams; <b>FX intensity</b> = how often it throws airhorns, sirens &amp; riser-drops at peaks (0% = clean mixes); <b>Blend length</b> = crossfade overlap in beats (shorter = punchier). Changes apply from the next mix.</li>
-      <li>It picks a <b>transition technique</b> for each mix like a DJ would, now from a fuller repertoire: <b>EQ blend</b> and <b>tops layer</b> (slides the incoming in as hats/percussion first, then swaps the bass) for compatible keys; <b>filter fade</b> or a lush <b>echo out</b> (delay + reverb wash) for clashing keys or energy shifts; <b>cut / slam</b> and the dramatic <b>silence cut</b> (a beat of dead air, then a downbeat slam) for genre jumps; a <b>loop build</b> that stutter-rolls into the drop; and a <b>double drop</b> when the drops line up. The Mix readout shows which it chose. Loop builds and silence cuts are used sparingly (more often in ⚡ Epic) since overusing them sounds gimmicky.</li>
+      <li>It picks a <b>transition technique</b> for each mix like a DJ would, now from a fuller repertoire: <b>EQ blend</b> and <b>tops layer</b> (slides the incoming in as hats/percussion first, then swaps the bass) for compatible keys; <b>filter fade</b> or a lush <b>echo out</b> (delay + reverb wash) for clashing keys or energy shifts; <b>cut / slam</b> and the dramatic <b>silence cut</b> (a beat of dead air, then a downbeat slam) for genre jumps; a <b>loop build</b> that stutter-rolls into the drop; a <b>spinback</b> (the megamix wind-back: an accelerating reverse zip, then the next drop slams on the downbeat); a festival <b>drop swap</b> (ride the outgoing's breakdown while the incoming runs its <i>own</i> build underneath, then kill the old track the instant the new drop lands); and a <b>double drop</b> when the drops line up. The Mix readout shows which it chose. Loop builds, spinbacks and silence cuts are used sparingly (more often in ⚡ Epic) since overusing them sounds gimmicky.</li>
+      <li><b>Blends are scheduled, not animated.</b> Every fade, bass swap and filter sweep is pre-scheduled on the audio clock (sample-accurate ramps), so transitions stay silky even if the tab is backgrounded mid-mix. The bass <b>swaps</b> over ~2 beats at the phrase point — never two basslines fighting — and after each mix the tempo <b>glides</b> back onto the energy curve instead of snapping.</li>
+      <li><b>Festival brain.</b> Pacing follows the energy curve — tracks ride long in the warm-up and mix quick at peak time, and at higher energy the incoming track enters on its own phrase grid so its first drop lands ~48 beats after it appears (no riding a 2-minute intro at 1am). At a big vocal moment it will occasionally <b>cut the music for a bar</b> so the room sings it back, then slam in with an impact. Big slams get a <b>downlifter</b> sweep so they never land dry, and in ⚡ Epic the loop build <b>pitch-rides</b> the outgoing up ~5% into the slam — the hands-up adrenaline shot.</li>
+      <li><b>⛶ Stage</b> (top of the page) — fullscreen, beat-reactive party visuals: a radial spectrum in deck colours, a kick-flash core synced to the on-air beat grid, now playing, the next-mix countdown, and every transition / DOUBLE DROP / crowd-sing called out huge on screen. Put it on the TV or projector; Esc exits.</li>
+      <li><b>Loudness-matched &amp; limited.</b> Every track's sustained loudness is measured during analysis and auto-trimmed toward one reference level, so a quiet rip never disappears next to a brickwalled banger. A master <b>limiter</b> catches stacked drops + FX before they can clip the PA.</li>
+      <li><b>Host tools:</b> hit <b>⏭</b> on a request to play it <b>next</b> (jumps the whole queue, re-cues the idle deck immediately); sort the crate by <b>name / BPM / key / 🔥 energy</b>; your tuning, toggles &amp; pad mappings <b>persist</b> between sessions; and the screen <b>stays awake</b> while the party runs.</li>
+      <li><b>🩺 Diag</b> (Controller row) — saves a diagnostics file: the last ~300 auto-DJ decisions (every mix, watchdog recovery, FX fire, error with stack trace) plus full deck/crate/engine state and any crash snapshot from a previous session. If the set ever does something weird, hit it right away and share the file. The engine also has a <b>circuit breaker</b>: if transitions ever start cascading (e.g. broken files), it halts the storm, holds the current track, and recovery cuts stay silent — no airhorn loops.</li>
       <li><b>Watch it play.</b> Every control the autopilot touches moves on screen — crossfader, the two tempo faders, the <b>Low</b> EQ bass-swap, volumes, the <b>Filter</b> sweep on a filter fade, the <b>Echo Out</b> light on an echo, and the <b>RISER ▸ DROP</b> build bar — so you can see exactly what it's doing.</li>
       <li><b>FX Weapons</b> — <b>Rewind!!</b> spins the on-air track backward and slams it back from the top (the rave encore). <b>Double Drop</b> tempo-locks both decks, cuts, and detonates both basslines at once.</li>
-      <li><b>MIDI controller (DDJ-200 &amp; standard USB-MIDI)</b> — plug a controller in over <b>USB</b>, click <b>Connect MIDI</b>, and allow the browser prompt. The DDJ-200's faders, EQ, filter, jog, play/cue/sync and the performance pads (→ airhorn / siren / rewind / double-drop) map to the decks automatically. Two catches from the browser, not the app: it only works in <b>Chrome or Edge</b> (no Safari/iOS), and Web MIDI is <b>blocked on file://</b> — so you can't just double-click the saved file. Serve it locally first, e.g. run <code>python3 -m http.server</code> in the file's folder and open <code>http://localhost:8000/dj-mixer.html</code>. <b>Bluetooth won't work</b>: the DDJ-200's Bluetooth is Pioneer's proprietary WeDJ protocol, not standard MIDI, so only its USB connection is usable here.</li>
+      <li><b>MIDI controller (DDJ-200 &amp; standard USB-MIDI)</b> — plug a controller in over <b>USB</b>, click <b>Connect MIDI</b>, and allow the browser prompt. The DDJ-200's faders, EQ, filter, jog, play/cue/sync and the performance pads (→ airhorn / siren / rewind / double-drop) map to the decks automatically. Two catches from the browser, not the app: it only works in <b>Chrome or Edge</b> (no Safari/iOS), and Web MIDI is <b>blocked on file://</b> — so the saved file alone can't connect. The fix is one double-click: run <b>Start-SUBVERTER.bat</b> (Windows) or <b>start-subverter.sh</b> (Mac/Linux) from this folder — it serves the app on <code>localhost</code> (no install, no admin rights) and opens your browser. Hosted (e.g. GitHub Pages) it just works. Once you've allowed MIDI on an address, the controller <b>auto-reconnects on load</b> — no clicking Connect each session. <b>Bluetooth won't work</b>: the DDJ-200's Bluetooth is Pioneer's proprietary WeDJ protocol, not standard MIDI, so only its USB connection is usable here.</li>
       <li><b>Airhorn</b> / <b>Siren</b> are instant rave stabs. <b>Beat Roll</b> (hold) stutter-loops a 1, ½, or ¼ beat of the on-air deck — perfect for the "brrrrap" right before a drop.</li>
       <li><b>DDJ-200 full map</b> — Jogs nudge (hold <b>SHIFT</b> + jog to search/seek); tempo, 3-band EQ, CFX filter, channel faders & crossfader all live. <b>Play</b>, <b>Cue</b> (SHIFT+Cue jumps to start), <b>Beat Sync</b>. <b>Performance pads</b> top row = Airhorn / Siren / Rewind / Double-drop; bottom row = Beat Roll 1 / ½ / ¼ (hold) + Riser▸Drop. <b>SHIFT</b> + pads = MC Drop / Epic / Skip / Start-Stop / Transition. <b>TRANSITION FX</b> button triggers a mixed blend (or Skips while the autopilot's driving); <b>headphone CUE 1/2</b> hard-cut the crossfader to that deck, <b>MASTER</b> centres it.</li>
     </ul>
+  </div>
+</div>
+
+<div class="stage hidden" id="stage">
+  <canvas id="stageCv"></canvas>
+  <button class="st-close" id="stageClose">✕ exit · Esc</button>
+  <div class="stage-ui">
+    <div class="st-callout" id="stCallout"></div>
+    <div class="st-title" id="stTitle">SUBVERTER</div>
+    <div class="st-sub" id="stSub">drop a crate · start the party</div>
+    <div class="st-next" id="stNext"></div>
   </div>
 </div>
 
@@ -722,7 +806,13 @@ masterFilterLP.connect(delay);
 delay.connect(delayFb); delayFb.connect(delay);   // feedback loop
 delay.connect(delayWet); delayWet.connect(master);
 masterFilterLP.connect(reverb); reverb.connect(reverbWet); reverbWet.connect(master);
-master.connect(masterAnalyser);
+// safety limiter: a double drop + airhorn + impact can stack well past 0dBFS — this
+// catches it transparently instead of letting the PA distort
+const limiter=AC.createDynamicsCompressor();
+limiter.threshold.value=-4.5; limiter.knee.value=6; limiter.ratio.value=12;
+limiter.attack.value=0.002; limiter.release.value=0.18;
+master.connect(limiter);
+limiter.connect(masterAnalyser);
 masterAnalyser.connect(AC.destination);
 
 const resumeCtx = () => { if (AC.state === 'suspended') AC.resume(); };
@@ -756,12 +846,13 @@ class Deck {
     this.high=AC.createBiquadFilter();this.high.type='highshelf';this.high.frequency.value=4500;
     this.fHP=AC.createBiquadFilter(); this.fHP.type='highpass';  this.fHP.frequency.value=20; this.fHP.Q.value=1.0;
     this.fLP=AC.createBiquadFilter(); this.fLP.type='lowpass';   this.fLP.frequency.value=20000;
+    this.trim=AC.createGain();  this.trim.gain.value=1; this.trimVal=1;   // per-track loudness normalization
     this.gain=AC.createGain();  this.gain.gain.value=0.85;       // volume fader
     this.xf=AC.createGain();    this.xf.gain.value=0.707;        // crossfade gain
 
     this.low.connect(this.mid); this.mid.connect(this.high);
     this.high.connect(this.fHP); this.fHP.connect(this.fLP);
-    this.fLP.connect(this.gain); this.gain.connect(this.xf);
+    this.fLP.connect(this.trim); this.trim.connect(this.gain); this.gain.connect(this.xf);
     this.xf.connect(masterFilterHP);
   }
   get effRate(){ return this.rate * this.nudge; }
@@ -974,7 +1065,7 @@ function analyzeStructure(buffer){
   const sr=buffer.sampleRate, ch0=buffer.getChannelData(0);
   const ch1=buffer.numberOfChannels>1?buffer.getChannelData(1):ch0;
   const W=Math.max(1,Math.floor(sr*0.25)), N=Math.floor(ch0.length/W);
-  if(N<8) return {drops:[], env:new Float32Array(0), envHz:4, audioEnd:buffer.duration};
+  if(N<8) return {drops:[], env:new Float32Array(0), envHz:4, audioEnd:buffer.duration, loud:0};
   const env=new Float32Array(N); let gmax=0;
   for(let i=0;i<N;i++){ let s=0; const a=i*W; for(let j=0;j<W;j+=4){ const v=(ch0[a+j]+ch1[a+j])*0.5; s+=v*v; } env[i]=Math.sqrt(s/(W/4)); if(env[i]>gmax)gmax=env[i]; }
   const sm=new Float32Array(N);
@@ -988,22 +1079,27 @@ function analyzeStructure(buffer){
   merged.sort((a,b)=>b.s-a.s);
   const drops=merged.slice(0,6).map(d=>d.t).sort((a,b)=>a-b);
   const norm=new Float32Array(N); if(gmax>0) for(let i=0;i<N;i++) norm[i]=sm[i]/gmax;
+  // loudness of the sustained-loud sections (90th-percentile RMS window) — feeds auto-gain
+  const srt=Array.from(sm).sort((a,b)=>a-b);
+  const loud=srt[Math.min(N-1,Math.floor(N*0.9))]||0;
   // trailing-silence detection: scan back from the end for the last audible window, so the autopilot
   // can finish its mix BEFORE any blank tail and never sit in dead air. norm is 0..1, bins are 0.25s.
   let li=N-1; const SIL=0.06;
   while(li>0 && norm[li]<SIL) li--;
   const fullDur=buffer.duration, contentEnd=Math.min(fullDur, (li+1)*0.25 + 0.12);
   const audioEnd=(fullDur-contentEnd>=1.2)? contentEnd : fullDur;   // only trim a meaningful (>1.2s) quiet tail
-  return {drops, env:norm, envHz:4, audioEnd};
+  return {drops, env:norm, envHz:4, audioEnd, loud};
 }
 
 async function analyzeTrack(buffer){
   const r=await analyzeRhythm(buffer,90);
   let camelot=null, key='—', vocalEnv=null, vocalHz=5;
   try{ const k=await analyzeKey(buffer); camelot=k.camelot; key=k.name; vocalEnv=k.vocalEnv; vocalHz=k.vocalHz; }catch(e){}
-  let drops=[], env=new Float32Array(0), envHz=4, audioEnd=buffer.duration;
-  try{ const st=analyzeStructure(buffer); drops=st.drops; env=st.env; envHz=st.envHz; if(st.audioEnd!=null) audioEnd=st.audioEnd; }catch(e){}
-  return { bpm:r.bpm, beatOffset:r.beatOffset, camelot, key, drops, env, envHz, vocalEnv, vocalHz, audioEnd };
+  let drops=[], env=new Float32Array(0), envHz=4, audioEnd=buffer.duration, loud=0;
+  try{ const st=analyzeStructure(buffer); drops=st.drops; env=st.env; envHz=st.envHz; if(st.audioEnd!=null) audioEnd=st.audioEnd; loud=st.loud||0; }catch(e){}
+  // auto-gain: trim every track toward one reference loudness so blends never jump in volume
+  const gainTrim = loud>0.02 ? Math.min(1.8, Math.max(0.5, 0.24/loud)) : 1;
+  return { bpm:r.bpm, beatOffset:r.beatOffset, camelot, key, drops, env, envHz, vocalEnv, vocalHz, audioEnd, loud, gainTrim };
 }
 
 function camelotStr(c){ return c ? (c.num+c.side) : '—'; }
@@ -1034,7 +1130,7 @@ async function handleFile(deck, file){
     nm.textContent.length;
     document.getElementById('bpm'+deck.id).textContent='…';
     const a=await analyzeTrack(audio);
-    deck.bpm=a.bpm; deck.beatOffset=a.beatOffset; deck.drops=a.drops; deck.env=a.env; deck.envHz=a.envHz; deck.camelot=a.camelot; deck.keyName=a.key; deck.vocalEnv=a.vocalEnv; deck.vocalHz=a.vocalHz; deck.audioEnd=a.audioEnd;
+    deck.bpm=a.bpm; deck.beatOffset=a.beatOffset; deck.drops=a.drops; deck.env=a.env; deck.envHz=a.envHz; deck.camelot=a.camelot; deck.keyName=a.key; deck.vocalEnv=a.vocalEnv; deck.vocalHz=a.vocalHz; deck.audioEnd=a.audioEnd; deck.trimVal=a.gainTrim||1; deck.trim.gain.value=deck.trimVal;
     drawWave(deck);
   }catch(err){
     nm.textContent='could not read that file';
@@ -1119,7 +1215,7 @@ function bind(id,ev,fn){ document.getElementById(id).addEventListener(ev,fn); }
   });
   bind('cue'+id,'click',()=>{ d.cue(); });
   // tempo
-  bind('tempo'+id,'input',e=>{ d.setRate(parseFloat(e.target.value)); });
+  bind('tempo'+id,'input',e=>{ if(typeof auto!=='undefined'&&auto.glide&&auto.glide.id===id) auto.glide=null; d.setRate(parseFloat(e.target.value)); });
   // nudge (hold)
   const nudgeDn=document.getElementById('nudge'+id+'dn');
   const nudgeUp=document.getElementById('nudge'+id+'up');
@@ -1163,12 +1259,67 @@ bind('masterVol','input',e=>{ master.gain.setTargetAtTime(parseFloat(e.target.va
 // crossfader (equal power) — single source of truth, used by manual + autopilot
 function setCrossfade(x, instant){
   x=Math.min(1,Math.max(0,x));
+  const now=AC.currentTime;
+  A.xf.gain.cancelScheduledValues(now); B.xf.gain.cancelScheduledValues(now);   // manual moves override any scheduled blend
   const ga=Math.cos(x*Math.PI/2), gb=Math.cos((1-x)*Math.PI/2);
   if(instant){ A.xf.gain.value=ga; B.xf.gain.value=gb; }
-  else { A.xf.gain.setTargetAtTime(ga,AC.currentTime,0.005); B.xf.gain.setTargetAtTime(gb,AC.currentTime,0.005); }
+  else { A.xf.gain.setTargetAtTime(ga,now,0.005); B.xf.gain.setTargetAtTime(gb,now,0.005); }
   const f=document.getElementById('xfader'); if(document.activeElement!==f) f.value=x;
 }
 bind('xfader','input',e=>setCrossfade(parseFloat(e.target.value)));
+
+/* --- scheduled mix automation -------------------------------------------------
+   The autopilot's blends are pre-scheduled on the audio clock (sample-accurate
+   ramps) instead of being driven frame-by-frame from rAF. That kills two big
+   sources of jarring transitions: zipper-stepping of the crossfader/EQ, and the
+   2Hz update rate when the tab is backgrounded. rAF only mirrors progress on the
+   UI. ------------------------------------------------------------------------ */
+function easeP(p,kind){ p=Math.min(1,Math.max(0,p));
+  if(kind==='smooth') return p*p*(3-2*p);            // ease in+out — the classic long blend
+  if(kind==='out')    return 1-Math.pow(1-p,1.7);    // front-loaded — echo-out exits fast, tail fills the space
+  return p; }
+// equal-power crossfade toward `toId`, eased, as piecewise-linear ramps
+function scheduleXfade(toId,start,dur,kind,x0,x1){
+  const now=AC.currentTime, steps=28;
+  if(x0==null) x0 = toId==='B'?0:1;     // default: full sweep toward toId
+  if(x1==null) x1 = toId==='B'?1:0;
+  A.xf.gain.cancelScheduledValues(now); B.xf.gain.cancelScheduledValues(now);
+  A.xf.gain.setValueAtTime(A.xf.gain.value, Math.max(now,start-0.001));
+  B.xf.gain.setValueAtTime(B.xf.gain.value, Math.max(now,start-0.001));
+  for(let i=1;i<=steps;i++){
+    const t=start+dur*i/steps, x=x0+(x1-x0)*easeP(i/steps,kind);
+    A.xf.gain.linearRampToValueAtTime(Math.cos(x*Math.PI/2), t);
+    B.xf.gain.linearRampToValueAtTime(Math.cos((1-x)*Math.PI/2), t);
+  }
+}
+// the pro bass handover: outgoing keeps its low end, incoming stays killed, then the
+// basslines SWAP over ~2 beats at swapFrac through the blend — never two basses at once
+function scheduleBassSwap(fromId,toId,start,dur,swapFrac,swapLen){
+  const now=AC.currentTime, lf=decks[fromId].low.gain, lt=decks[toId].low.gain;
+  lf.cancelScheduledValues(now); lt.cancelScheduledValues(now);
+  const s=start+dur*swapFrac, e=Math.min(start+dur, s+swapLen);
+  lf.setValueAtTime(lf.value, Math.max(now,start-0.001));
+  lf.setValueAtTime(lf.value, s); lf.linearRampToValueAtTime(-26, e);
+  lt.setValueAtTime(-26, Math.max(now,start-0.001));
+  lt.setValueAtTime(-26, s);      lt.linearRampToValueAtTime(0, e);
+}
+// filter fade: sweep the outgoing out through a closing lowpass, scheduled
+function scheduleFilterOut(fromId,start,dur){
+  const f=decks[fromId].fLP.frequency, now=AC.currentTime;
+  f.cancelScheduledValues(now);
+  f.setValueAtTime(Math.max(300,f.value), Math.max(now,start-0.001));
+  f.exponentialRampToValueAtTime(280, start+dur);
+}
+// tops layer: incoming enters as hats/percussion through a highpass that opens to full
+function scheduleTopsOpen(toId,start,dur){
+  const f=decks[toId].fHP.frequency, now=AC.currentTime;
+  f.cancelScheduledValues(now);
+  f.setValueAtTime(1500, Math.max(now,start-0.001));
+  f.exponentialRampToValueAtTime(20, start+dur);
+}
+// UI-only mirrors (audio is already scheduled — these just move the on-screen controls)
+function uiLowVal(id,db){ const s=document.getElementById('low'+id); if(s&&document.activeElement!==s) s.value=db; const l=document.getElementById('low'+id+'v'); if(l) l.textContent=db.toFixed(0)+'dB'; }
+function uiFiltVal(id,v){ const s=document.getElementById('filt'+id); if(s&&document.activeElement!==s) s.value=v; }
 
 // helpers shared with the autopilot (keep UI + audio graph in sync)
 function setVol(id,v){ decks[id].gain.gain.value=v; document.getElementById('vol'+id).value=v; }
@@ -1331,6 +1482,15 @@ function impact(t){
   ng.gain.exponentialRampToValueAtTime(0.0001,t+0.7);
   n.start(t); n.stop(t+0.75);
 }
+// downlifter: the falling noise sweep pros glue onto a big slam so it never lands dry
+function downlifter(t){
+  const n=AC.createBufferSource(); n.buffer=noiseBuffer();
+  const bp=AC.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=1.0;
+  const g=AC.createGain(); n.connect(bp); bp.connect(g); g.connect(master);
+  bp.frequency.setValueAtTime(7000,t); bp.frequency.exponentialRampToValueAtTime(180,t+0.9);
+  g.gain.setValueAtTime(0.22,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.9);
+  n.start(t); n.stop(t+0.95);
+}
 let _noiseBuf=null;
 function noiseBuffer(){
   if(_noiseBuf) return _noiseBuf;
@@ -1448,7 +1608,7 @@ function rewindReload(reloadOffset){
   d.stop(); setPlayUI(id,false);
   const rev=AC.createBufferSource(); rev.buffer=makeReverseSlice(d.buffer,pos,3.0);
   const rg=AC.createGain(); rev.connect(rg); rg.connect(master);
-  rg.gain.setValueAtTime(0.85,t); rg.gain.exponentialRampToValueAtTime(0.18,t+0.55);
+  rg.gain.setValueAtTime(0.85*(d.trimVal||1),t); rg.gain.exponentialRampToValueAtTime(0.18,t+0.55);
   rev.playbackRate.setValueAtTime(1.0,t); rev.playbackRate.exponentialRampToValueAtTime(2.9,t+0.55);
   rev.start(t); rev.stop(t+0.6);
   toast('REWIND! … pull up!');
@@ -1646,12 +1806,16 @@ function midiSeek(id,v){                                             // SHIFT+jo
 function manualXfade(from,to,dur){                                   // standalone timed blend + bass swap
   if(_mx){ cancelAnimationFrame(_mx); _mx=null; }
   const t0=AC.currentTime; setVol(to,0.85);
+  // sample-accurate: eased equal-power fade + a real bass SWAP at ~62% (not a muddy linear trade)
+  scheduleXfade(to, t0, dur, 'smooth');
+  scheduleBassSwap(from, to, t0, dur, 0.62, Math.max(0.4, 2*60/(decks[from].effBPM||128)));
   const step=()=>{
-    const p=Math.min(1,(AC.currentTime-t0)/dur);
-    setCrossfade(to==='B'? p : 1-p, true);
-    setLowEQ(to, -26*(1-p)); setLowEQ(from, -26*p);
+    const p=Math.min(1,(AC.currentTime-t0)/dur), e=easeP(p,'smooth');
+    const f=document.getElementById('xfader'); if(document.activeElement!==f) f.value = to==='B'? e : 1-e;
+    const sw=Math.min(1,Math.max(0,(p-0.62)/0.12));
+    uiLowVal(from,-26*sw); uiLowVal(to,-26*(1-sw));
     if(p<1) _mx=requestAnimationFrame(step);
-    else { setLowEQ(from,0); setLowEQ(to,0); _mx=null; }
+    else { [A,B].forEach(d=>d.low.gain.cancelScheduledValues(AC.currentTime)); setLowEQ(from,0); setLowEQ(to,0); setCrossfade(to==='B'?1:0,true); _mx=null; }
   };
   step();
 }
@@ -1737,7 +1901,7 @@ function renderPads(){
       if(padEditMode){
         const sel=document.createElement('select');
         for(const a of PAD_FX){ const o=document.createElement('option'); o.value=a.id; o.textContent=a.label; if(a.id===id) o.selected=true; sel.appendChild(o); }
-        sel.addEventListener('change',()=>{ bank[idx]=sel.value; renderPads(); });
+        sel.addEventListener('change',()=>{ bank[idx]=sel.value; renderPads(); saveSettings(); });
         cell.appendChild(sel);
       } else {
         cell.innerHTML='<span class="pn">'+(idx+1)+'</span>'+escapeHTML(act.label);
@@ -1806,9 +1970,9 @@ function onMIDIMessage(e){
 }
 
 let midiAccess=null;
-async function connectMIDI(){
-  if(!navigator.requestMIDIAccess){ midiStat('Web MIDI needs Chrome or Edge (Safari/iOS unsupported)',false); return; }
-  if(location.protocol==='file:'){ midiStat('Web MIDI is blocked on file:// — serve over localhost (see help) then reconnect',false); return; }
+async function connectMIDI(quiet){
+  if(!navigator.requestMIDIAccess){ if(!quiet) midiStat('Web MIDI needs Chrome or Edge (Safari/iOS unsupported)',false); return; }
+  // No hard file:// block — we attempt the connection and only guide the user if Chrome refuses.
   midiStat('requesting MIDI access…',true);
   try{
     midiAccess=await navigator.requestMIDIAccess({sysex:false});
@@ -1824,10 +1988,23 @@ async function connectMIDI(){
     attach();
     midiAccess.onstatechange=attach;
   }catch(err){
-    midiStat('MIDI access denied or failed'+(err&&err.message?(' ('+err.message+')'):''),false);
+    if(location.protocol==='file:'){
+      midiStat('Chrome refuses the MIDI permission on file:// — double-click Start-SUBVERTER.bat (Windows) or start-subverter.sh (Mac/Linux) in this folder instead, or host the app (see help)',false);
+    } else {
+      midiStat('MIDI access denied or failed'+(err&&err.message?(' ('+err.message+')'):''),false);
+    }
   }
 }
-bind('midiBtn','click',connectMIDI);
+bind('midiBtn','click',()=>connectMIDI(false));
+// Auto-reconnect: if this origin already holds the MIDI permission (granted on a previous
+// visit), hook the controller up on load — no need to click Connect MIDI every session.
+(async()=>{
+  try{
+    if(!navigator.permissions || !navigator.requestMIDIAccess) return;
+    const st=await navigator.permissions.query({name:'midi', sysex:false});
+    if(st.state==='granted') connectMIDI(true);
+  }catch(e){}
+})();
 bind('liteBtn','click',()=>{ perf.lite=!perf.lite; document.getElementById('liteBtn').classList.toggle('on',perf.lite); if(perf.lite) toast('Lite UI — visuals paused for lower latency'); });
 
 /* ---- Requests drawer UI ---- */
@@ -1852,7 +2029,11 @@ function renderWish(){
     const label=e.artist?(escapeHTML(e.artist)+' – '+escapeHTML(e.name)):escapeHTML(e.name);
     const meta=e.bpm?(e.bpm.toFixed(0)+' · '+camelotStr(e.camelot)):'—';
     const row=document.createElement('div'); row.className='reqitem';
-    row.innerHTML='<span class="pos">'+(i+1)+'</span><div class="col"><div class="nm">'+label+'</div><div class="st '+f.cls+'">'+meta+' · '+f.label+'</div></div><button class="rm" title="Remove">✕</button>';
+    row.innerHTML='<span class="pos">'+(i+1)+'</span><div class="col"><div class="nm">'+label+'</div><div class="st '+f.cls+'">'+meta+' · '+f.label+'</div></div><button class="nx" title="Play this NEXT — jumps the whole queue">⏭</button><button class="rm" title="Remove">✕</button>';
+    row.querySelector('.nx').addEventListener('click',()=>{
+      auto.forceNext=e; toast('⏭ Locked in next: '+e.name);
+      if(auto.state==='running' && !auto.trans){ const od=auto.curId==='A'?'B':'A'; preloadNext(od); }   // re-cue the idle deck now
+    });
     row.querySelector('.rm').addEventListener('click',()=>removeWish(e));
     box.appendChild(row);
   });
@@ -1961,8 +2142,11 @@ async function runAnalysisQueue(){
       const ab=await entryArrayBuffer(e);
       const buf=await AC.decodeAudioData(ab);
       e.dur=buf.duration;
+      // a truncated download / corrupt file can decode to a few seconds of audio — if the
+      // autopilot played it, the end-of-track watchdog would fire instantly and cascade
+      if(buf.duration<20) throw new Error('too short for the autopilot ('+buf.duration.toFixed(1)+'s)');
       const a=await analyzeTrack(buf);   // bpm + beat phase + key + drops + envelope
-      e.bpm=a.bpm; e.beatOffset=a.beatOffset; e.camelot=a.camelot; e.key=a.key; e.drops=a.drops; e.env=a.env; e.envHz=a.envHz; e.vocalEnv=a.vocalEnv; e.vocalHz=a.vocalHz; e.audioEnd=a.audioEnd;
+      e.bpm=a.bpm; e.beatOffset=a.beatOffset; e.camelot=a.camelot; e.key=a.key; e.drops=a.drops; e.env=a.env; e.envHz=a.envHz; e.vocalEnv=a.vocalEnv; e.vocalHz=a.vocalHz; e.audioEnd=a.audioEnd; e.gainTrim=a.gainTrim||1; e._nrg=Math.min(1,Math.max(0,((a.bpm-100)/50)*0.5+Math.min(1,(a.loud||0)/0.3)*0.5));
       e.status=e.bpm?'ready':'failed';
     }catch(err){ e.status='failed'; e.failReason=(err&&err.message)||'decode / CORS error'; }
     renderLibrary(); updateApStatus();
@@ -1973,24 +2157,34 @@ async function runAnalysisQueue(){
 }
 function readyTracks(){ return library.filter(e=>e.status==='ready'); }
 
+const LIB_SORTS=[['name','A–Z'],['bpm','BPM'],['key','KEY'],['nrg','🔥']];
+let libSortIx=0;
 function renderLibrary(){
   const box=document.getElementById('libList');
   document.getElementById('libCount').textContent=library.length+' tracks';
   if(!library.length){ box.innerHTML='<div class="lib-empty">No folder loaded yet.</div>'; return; }
   box.innerHTML='';
-  for(const e of library){
+  const mode=LIB_SORTS[libSortIx][0], list=library.slice();   // display order only — analysis queue keeps its own order
+  if(mode==='bpm')      list.sort((a,b)=>(a.bpm||999)-(b.bpm||999));
+  else if(mode==='key') list.sort((a,b)=>((a.camelot? a.camelot.num+(a.camelot.side==='B'?0.5:0) :99))-((b.camelot? b.camelot.num+(b.camelot.side==='B'?0.5:0) :99)));
+  else if(mode==='nrg') list.sort((a,b)=>(b._nrg||0)-(a._nrg||0));
+  else                  list.sort((a,b)=>a.name.localeCompare(b.name));
+  for(const e of list){
     const c = e.status==='ready'?'var(--acid)':e.status==='analyzing'?'var(--amber)':e.status==='failed'?'var(--danger)':'var(--dim)';
     const row=document.createElement('div'); row.className='lib-row';
     row.title = (e.status==='failed'&&e.failReason) ? ('failed: '+e.failReason) : (e.status==='ready'?'Click to load to a free deck':e.status);
     const label = e.artist ? (escapeHTML(e.artist)+' – '+escapeHTML(e.name)) : escapeHTML(e.name);
     const meta = e.bpm ? ('<span class="lib-key">'+camelotStr(e.camelot)+'</span><span class="lib-bpm">'+e.bpm.toFixed(0)+'</span>') : ('<span class="lib-bpm">'+(e.status==='analyzing'?'···':'—')+'</span>');
-    row.innerHTML='<span class="lib-dot" style="background:'+c+'"></span><span class="lib-name">'+label+'</span>'+meta;
+    const nrg = e.status==='ready' ? '<span class="lib-nrg" title="energy '+Math.round((e._nrg||0)*100)+'%"><i style="width:'+Math.round((e._nrg||0)*100)+'%"></i></span>' : '';
+    row.innerHTML='<span class="lib-dot" style="background:'+c+'"></span><span class="lib-name">'+label+'</span>'+nrg+meta;
     if(e.status==='ready') row.addEventListener('click',()=>manualLoad(e));
     box.appendChild(row);
   }
   const dr=document.getElementById('reqDrawer');
   if(dr && dr.classList.contains('open')){ renderResults(document.getElementById('reqSearch').value); renderWish(); }
 }
+
+bind('libSortBtn','click',()=>{ libSortIx=(libSortIx+1)%LIB_SORTS.length; document.getElementById('libSortBtn').textContent=LIB_SORTS[libSortIx][1]; renderLibrary(); });
 
 const _bufCache=new Map();   // url -> decoded AudioBuffer; spares us re-fetching online URLs that expire mid-set
 async function loadEntryToDeck(entry,id){
@@ -2010,6 +2204,7 @@ async function loadEntryToDeck(entry,id){
   d.vocalEnv=entry.vocalEnv||null; d.vocalHz=entry.vocalHz||5;
   d.camelot=entry.camelot||null; d.keyName=entry.key||'—'; d.entry=entry;
   d.audioEnd = (entry.audioEnd!=null) ? entry.audioEnd : buf.duration;
+  d.trimVal=entry.gainTrim||1; d.trim.gain.value=d.trimVal;   // loudness-match this track
   d.segEnd = buf.duration;
   document.getElementById('name'+id).textContent=entry.name;
   document.getElementById('play'+id).disabled=false;
@@ -2264,6 +2459,7 @@ function replayCurrent(){
   d.offset=off; d.play(); setPlayUI(auto.curId,true);
   setCrossfade(auto.curId==='B'?1:0,true); setLowEQ(auto.curId,0); setVol(auto.curId,0.85);
   auto.mixPos=null; auto.teasePlan=null; auto.ddArmed=false;
+  dlog('replay',{track:(d.entry&&d.entry.name)||'?', from:+off.toFixed(1)});
   toast('↻ crate ran dry — looping current track');
 }
 
@@ -2273,6 +2469,8 @@ function dequeueWish(e){ const i=wish.indexOf(e); if(i>=0){ wish.splice(i,1); e.
 
 // pick next track by closeness to target BPM, biased toward harmonic matches — and STEERED toward the top request
 function pickTrack(target, refKey){
+  // hard override: the host hit ⏭ on a request — it jumps every line, no scoring
+  if(auto.forceNext){ const f=auto.forceNext; if(f.status==='ready'){ auto.forceNext=null; return f; } if(f.status==='failed') auto.forceNext=null; }
   let pool=readyTracks().filter(e=>!auto.usedNames.has(e.name));
   if(!pool.length){ auto.usedNames.clear(); pool=readyTracks(); }   // loop the crate
   if(pool.length>1) pool=pool.filter(e=>e!==auto.lastEntry);
@@ -2304,10 +2502,12 @@ async function startParty(){
   resumeCtx();
   auto.T=parseInt(document.getElementById('setLen').value);
   auto.startT=AC.currentTime; auto.state='running'; auto.winding=false; auto.trans=null;
-  auto.usedNames=new Set(); auto.lastEntry=null; auto.ddArmed=false; auto.mixPos=null; auto.teasePlan=null; auto.minPlay=0; auto.mixWhy=''; auto._lastTickAC=AC.currentTime;
+  auto.usedNames=new Set(); auto.lastEntry=null; auto.ddArmed=false; auto.mixPos=null; auto.teasePlan=null; auto.minPlay=0; auto.mixWhy=''; auto._lastTickAC=AC.currentTime; auto._sangThisTrack=false;
+  keepAwake(true);                                   // don't let the laptop sleep mid-set
   document.getElementById('startBtn').textContent='■ STOP PARTY';
   document.getElementById('startBtn').classList.add('on');
   document.getElementById('apLive').classList.add('on');
+  dlog('party','start');
   toast('Cueing the night…');
 
   const t0=pickTrack(targetBPMat(0)); markUsed(t0); dequeueWish(t0);
@@ -2334,7 +2534,7 @@ async function preloadNext(id){
       decks[id].cued=true;
       updateNowPlaying();
       return;
-    }catch(err){ if(t){ t.status='failed'; t.failReason=(err&&err.message)||'load error'; } renderLibrary(); }
+    }catch(err){ if(t){ t.status='failed'; t.failReason=(err&&err.message)||'load error'; dlog('load-fail',{track:t.name, why:t.failReason}); } renderLibrary(); }
   }
 }
 
@@ -2359,6 +2559,7 @@ function planMix(d){
   const pat=tune.patience;                                       // 0 = mix ASAP · 1 = ride to the outro
   let minPlay=(seg===Infinity)? Math.max(dur*0.5, 64*beat) : Math.min(seg, dur*0.85);
   minPlay*=(0.7+pat*0.6);                                         // patience stretches how long a track plays
+  minPlay*=(1.18-0.35*energyAt(auto.progress()));                  // festival pacing: warm-up rides long, peak time mixes quick
   minPlay=Math.min(minPlay, dur*0.92);
   auto.minPlay=minPlay;
   const now=d.currentTime();
@@ -2423,15 +2624,16 @@ function teaseHook(inc, when, beats){
   const dl=AC.createDelay(1.0); dl.delayTime.value=beatReal/2; const fb=AC.createGain(); fb.gain.value=0.3;
   src.connect(hp); hp.connect(g);
   g.connect(masterFilterHP); g.connect(dl); dl.connect(fb); fb.connect(dl); dl.connect(masterFilterHP);
+  const lvl=0.85*(inc.trimVal||1);
   g.gain.setValueAtTime(0.0001,when);
-  g.gain.exponentialRampToValueAtTime(0.85,when+0.012);
-  g.gain.setValueAtTime(0.85,when+dur-0.04);
+  g.gain.exponentialRampToValueAtTime(lvl,when+0.012);
+  g.gain.setValueAtTime(lvl,when+dur-0.04);
   g.gain.exponentialRampToValueAtTime(0.0001,when+dur);     // yank it away — build the want
   src.start(when, Math.max(0, inc.drops[0]));
   src.stop(when+dur+0.7);
 }
 
-const STYLE_NAME={blend:'EQ blend', filter:'filter fade', echo:'echo out', cut:'cut / slam', doubledrop:'◎ DOUBLE DROP', tops:'tops layer', build:'loop build', silence:'silence cut'};
+const STYLE_NAME={blend:'EQ blend', filter:'filter fade', echo:'echo out', cut:'cut / slam', doubledrop:'◎ DOUBLE DROP', tops:'tops layer', build:'loop build', silence:'silence cut', spinback:'spinback ⟲', dropswap:'drop swap ⤓'};
 // choose the transition a DJ would here, from key compatibility + energy context
 function selectTransition(fd,td){
   const p=auto.progress(), peak=energyAt(p)>=0.80;
@@ -2439,9 +2641,17 @@ function selectTransition(fd,td){
   const eFrom=envAt(fd, auto.mixPos!=null?auto.mixPos:fd.currentTime());
   const epic=auto.epic, adv=tune.adventure, r=Math.random();    // adv: 0 smooth blends … 1 wild
   if(!comp){                                                  // clashing keys → avoid melodic overlap
-    if(peak) return r<adv ? 'silence' : 'cut';                // genre/key jump → silence-slam or hard cut
+    if(peak) return r<adv*0.5 ? 'spinback' : (r<adv ? 'silence' : 'cut');  // jump via spinback, dead air, or a hard cut
     return r<0.5?'filter':'echo';
   }
+  if(peak && epic && r<0.12) return 'spinback';               // ⚡ the occasional megamix wind-back at a peak
+  // THE festival transition: ride the outgoing breakdown while the incoming runs its OWN build,
+  // then kill the old track dead the instant the new drop lands. Needs key-compatible tracks,
+  // a known incoming drop with build runway, and enough outgoing track left to ride.
+  const eNow=energyAt(p);
+  const canDS = td && td.drops && td.drops.length && td.bpm && td.drops[0] > 16*(60/td.bpm)
+             && auto.mixPos!=null && fd.bpm && (playEnd(fd)-auto.mixPos) > 34*(60/fd.bpm);
+  if(canDS && eNow>=0.55 && Math.random() < (peak? 0.55 : 0.25+adv*0.2)) return 'dropswap';
   if(peak && auto.weapons && r < (epic? adv : adv*0.4)) return 'build';   // loop-roll release into the drop
   if(peak)  return r<adv ? 'cut':'blend';                     // peak → punchy slam or a tight blend
   if(eFrom<0.4) return r<0.5?'echo':'filter';                 // leaving a breakdown → buffer the change
@@ -2457,39 +2667,82 @@ function autoFx(kind, t){
   t = t || AC.currentTime;
   if(kind==='impact'){ if(t-_impAt<0.35) return; _impAt=t; impact(t); return; }
   if(t-_sfxAt < AUTO_SFX_GAP) return;          // too soon after the last stab — skip to keep it clean
-  _sfxAt=t;
+  _sfxAt=t; dlog('fx',kind);
   if(kind==='airhorn') airhorn(t);
   else if(kind==='siren') siren(t);
   else if(kind==='riser') runDrop();
 }
 
-function beginTransition(dur, when, styleOverride){
+function beginTransition(dur, when, styleOverride, quietFx){
   const from=auto.curId, to=from==='A'?'B':'A';
   const fd=decks[from], td=decks[to];
   if(!td.buffer || !td.cued){ fd.segEnd += 1.5; return; }
+  // CIRCUIT BREAKER: transitions should never start more than ~once per few seconds. If three
+  // start within 3s of each other (broken files, bad analysis, a recovery cascade), stop the
+  // storm: cool off for 10s and replan, instead of ping-ponging decks with airhorns.
+  const nowT=AC.currentTime;
+  if(nowT < (auto._coolUntil||0)) return;
+  if(nowT-(auto._lastTransAt||-99) < 3){
+    if(++auto._transBurst >= 3){
+      auto._coolUntil=nowT+10; auto._transBurst=0; auto.mixPos=null;
+      dlog('breaker','3 transition starts <3s apart — cooling 10s');
+      toast('⚠ mix loop detected — holding 10s');
+      return;
+    }
+  } else auto._transBurst=0;
+  auto._lastTransAt=nowT;
+  auto.glide=null;                                // a new mix takes over any running tempo glide
   lockTempo(td, fd.effBPM);                       // beat-lock incoming to outgoing tempo
   when = when || fd.nextBeatTime(0.12, 4);        // bring the new track in on the bar
-  const style = styleOverride || selectTransition(fd,td);
+  let style = styleOverride || selectTransition(fd,td);
   const peak = energyAt(auto.progress())>=0.86;
   const beatReal=60/fd.effBPM;
-  if(style==='build')   return beginBuild(fd,td,when,beatReal);
-  if(style==='silence') return beginSilence(fd,td,when,beatReal);
+  if(style==='build'||style==='silence'||style==='spinback'||style==='dropswap')
+    dlog('mix',{style, from, to, lead:+(when-AC.currentTime).toFixed(2)});
+  if(style==='build')    return beginBuild(fd,td,when,beatReal);
+  if(style==='silence')  return beginSilence(fd,td,when,beatReal);
+  if(style==='spinback') return beginSpinback(fd,td,when,beatReal);
+  if(style==='dropswap'){ if(td.drops&&td.drops.length) return beginDropSwap(fd,td,when,beatReal); style='blend'; }
   // incoming entry point: a hard cut slams the new track's drop; everything else rides its grid
-  const startOff = (style==='cut' && td.drops.length)? td.drops[0] : (td.beatOffset||0);
+  let startOff = (style==='cut' && td.drops.length)? td.drops[0] : (td.beatOffset||0);
+  // festival pacing: at higher energy don't ride a long intro — enter on the incoming's own
+  // phrase grid so its first drop lands ~48 beats after it appears
+  if(style!=='cut' && td.drops.length && td.bpm && energyAt(auto.progress())>=0.6){
+    const tb=60/td.bpm, lead=48*tb, base=td.beatOffset||0;
+    if(td.drops[0]-base > lead+8*tb){
+      const n=Math.floor((td.drops[0]-lead-base)/(32*tb));
+      if(n>0) startOff=base+n*32*tb;
+    }
+  }
   td.playAt(when, startOff); setPlayUI(to,true); setVol(to,0.85);
-  if(style==='tops'){ setLowEQ(to,-26); setFilterUI(to,84); }   // tops layer: bass killed + high-passed to hats/tops
-  else setLowEQ(to, style==='cut'? 0 : -26);                    // cut comes in full; blends keep bass back for the swap
+  if(style!=='cut') setLowEQ(to,-26);                           // blends hold the incoming bass back for the swap
+  else setLowEQ(to,0);                                          // cut comes in full
   let d=dur;
   if(style==='cut')  d=Math.max(0.5, beatReal);          // ~1 beat
   if(style==='echo') d=Math.max(3, 8*beatReal);          // shorter overlap, echo tail
   if(style==='tops') d=Math.max(6, 16*beatReal);         // longer layered blend
-  auto.trans={mode:'blend', style, from, to, start:when, dur:d, peak, echoUp:false};
+  if(style!=='cut'){
+    // pre-schedule the whole blend on the audio clock: eased equal-power fade + phrase-point bass swap
+    const ease = style==='echo' ? 'out' : (style==='filter' ? 'linear' : 'smooth');
+    scheduleXfade(to, when, d, ease);
+    const swapFrac = style==='tops' ? 0.55 : (style==='echo' ? 0.45 : 0.62);
+    const swapLen  = Math.max(0.4, (style==='tops'?4:2)*beatReal);
+    scheduleBassSwap(from, to, when, d, swapFrac, swapLen);
+    if(style==='filter') scheduleFilterOut(from, when, d);
+    if(style==='tops'){ scheduleTopsOpen(to, when, d); uiFiltVal(to,84); }
+    auto.trans={mode:'blend', style, from, to, start:when, dur:d, peak, echoUp:false, scheduled:true, swapFrac};
+  } else {
+    auto.trans={mode:'blend', style, from, to, start:when, dur:d, peak, echoUp:false};
+  }
+  dlog('mix',{style, from, to, lead:+(when-AC.currentTime).toFixed(2), quiet:!!quietFx});
   toast(STYLE_NAME[style]+' ▸');
-  if(peak && (style==='blend'||style==='filter') && auto.weapons && !armed && Math.random()<tune.fx){
-    document.getElementById('buildLen').value=Math.min(16,auto.transBeats); autoFx('riser',when);
-  } else if(peak && style==='cut'){ if(Math.random()<tune.fx) autoFx('airhorn',when); autoFx('impact',when); }
-  else if(peak){ if(Math.random()<tune.fx) autoFx('airhorn',when); }
-  if(peak && auto.epic && Math.random()<tune.fx) autoFx('siren',when+0.03);   // ⚡ EPIC: extra siren on big peaks (gated)
+  if(!quietFx){                                   // recovery cuts are silent — no FX victory lap on a rescue
+    if(peak && (style==='blend'||style==='filter') && auto.weapons && !armed && Math.random()<tune.fx){
+      document.getElementById('buildLen').value=Math.min(16,auto.transBeats); autoFx('riser',when);
+    } else if(peak && style==='cut'){ if(Math.random()<tune.fx) autoFx('airhorn',when); autoFx('impact',when); }
+    else if(peak){ if(Math.random()<tune.fx) autoFx('airhorn',when); }
+    if(peak && auto.epic && Math.random()<tune.fx) autoFx('siren',when+0.03);   // ⚡ EPIC: extra siren on big peaks (gated)
+  }
 }
 
 // loop build (technique 5): stutter-roll the outgoing, halving toward the drop, riser into the release
@@ -2498,8 +2751,15 @@ function beginBuild(fd,td,when,beatReal){
   const startOff = td.drops.length? td.drops[0] : (td.beatOffset||0);
   td.playAt(relAt, startOff); setPlayUI(td.id,true); setVol(td.id,0.85); setLowEQ(td.id,0);
   mcRiser(when, 4*beatReal);                                    // riser resolves on the release
+  // ⚡ pitch-push: ride the outgoing up ~5% across the roll (key-shift up) — the hands-up
+  // adrenaline shot into the slam. The deck dies at the release, so the clock never drifts on-air.
+  if(auto.epic && fd.source){
+    fd.source.playbackRate.cancelScheduledValues(when);
+    fd.source.playbackRate.setValueAtTime(fd.effRate,when);
+    fd.source.playbackRate.linearRampToValueAtTime(fd.effRate*1.05, relAt);
+  }
   const steps=[{t:when,b:1},{t:when+2*beatReal,b:0.5},{t:when+3*beatReal,b:0.25},{t:when+3.5*beatReal,b:0.125}];
-  auto.trans={mode:'build', from:fd.id, to:td.id, relAt, steps, idx:0, rolling:false, released:false};
+  auto.trans={mode:'build', style:'build', from:fd.id, to:td.id, relAt, steps, idx:0, rolling:false, released:false};
   toast('loop build ▸');
 }
 // silence cut (technique 18): cut the outgoing, a beat of dead air, slam the incoming on the downbeat
@@ -2508,8 +2768,40 @@ function beginSilence(fd,td,when,beatReal){
   const startOff = td.drops.length? td.drops[0] : (td.beatOffset||0);
   td.playAt(slamAt, startOff); setPlayUI(td.id,true); setVol(td.id,0.85); setLowEQ(td.id,0);
   const restore=parseFloat(document.getElementById('masterVol').value);
-  auto.trans={mode:'silence', from:fd.id, to:td.id, cutAt:when, slamAt, beatReal, restore, cut:false, slammed:false};
+  auto.trans={mode:'silence', style:'silence', from:fd.id, to:td.id, cutAt:when, slamAt, beatReal, restore, cut:false, slammed:false};
   toast('silence cut ▸');
+}
+// spinback (the megamix classic): kill the outgoing dead on the phrase with an accelerating
+// reverse "ziiip", two beats of wind-back, then slam the incoming's drop on the downbeat
+function beginSpinback(fd,td,when,beatReal){
+  const slamAt=when+2*beatReal;
+  // where the outgoing playhead will be at the cut (when can be up to a bar ahead)
+  const cutPos=fd.currentTime()+Math.max(0,(when-AC.currentTime))*fd.effRate;
+  try{ if(fd.source) fd.source.stop(when); }catch(e){}
+  const rev=AC.createBufferSource(); rev.buffer=makeReverseSlice(fd.buffer,cutPos,2.2);
+  const rg=AC.createGain(); rev.connect(rg); rg.connect(masterFilterHP);
+  rg.gain.setValueAtTime(0.9*(fd.trimVal||1),when); rg.gain.exponentialRampToValueAtTime(0.12,slamAt);
+  rev.playbackRate.setValueAtTime(1.0,when); rev.playbackRate.exponentialRampToValueAtTime(3.2,slamAt);
+  rev.start(when); rev.stop(slamAt+0.05);
+  const startOff = td.drops.length? td.drops[0] : (td.beatOffset||0);
+  td.playAt(slamAt,startOff); setPlayUI(td.id,true); setVol(td.id,0.85); setLowEQ(td.id,0);
+  auto.trans={mode:'spinback', style:'spinback', from:fd.id, to:td.id, cutAt:when, slamAt, beatReal, cut:false, slammed:false};
+  toast('spinback ⟲ ▸');
+}
+// drop swap (THE festival transition): ride the outgoing's breakdown/outro while the incoming
+// runs its OWN build underneath — half-faded, bass killed — then the instant the incoming's
+// drop lands, kill the old track dead and slam the new one in full
+function beginDropSwap(fd,td,when,beatReal){
+  const tdBeat=beatReal*td.effRate;                       // one real beat, in incoming track-time
+  let lead=32;                                            // ride the incoming's last 32 build beats
+  if(td.drops[0] < lead*tdBeat) lead=Math.max(16, Math.floor(td.drops[0]/tdBeat/8)*8);
+  const dropAt=when+lead*beatReal;
+  const startOff=Math.max(0, td.drops[0]-lead*tdBeat);
+  td.playAt(when,startOff); setPlayUI(td.id,true); setVol(td.id,0.85); setLowEQ(td.id,-26);
+  scheduleXfade(td.id, when, dropAt-when, 'smooth', td.id==='B'?0:1, 0.5);   // sneak the build up to half
+  if(Math.random()<tune.fx*0.7) mcRiser(dropAt-4*beatReal, 4*beatReal);      // optional extra noise lift
+  auto.trans={mode:'dropswap', style:'dropswap', from:fd.id, to:td.id, start:when, dropAt, dur:dropAt-when, beatReal, killed:false};
+  toast('drop swap ⤓ ▸ riding the build');
 }
 
 // drop-on-drop: start the incoming track so ITS drop lands exactly on the outgoing track's next drop
@@ -2534,15 +2826,33 @@ function maybeDoubleDrop(fd,td){
 
 function finalizeTransition(tr){
   if(tr.rolling){ stopRoll(tr.from); tr.rolling=false; }   // ⚡ ensure any epic build-roll is released
-  decks[tr.from].pause(); setPlayUI(tr.from,false); setLowEQ(tr.from,0);
-  setFilterUI(tr.from, 50);     // undo any filter sweep (and snap the slider back to centre)
+  const now=AC.currentTime;                                // clear any leftover scheduled mix automation
+  [A,B].forEach(d=>{ d.xf.gain.cancelScheduledValues(now); d.low.gain.cancelScheduledValues(now); d.fLP.frequency.cancelScheduledValues(now); d.fHP.frequency.cancelScheduledValues(now); });
+  decks[tr.from].pause(); setPlayUI(tr.from,false); setLowEQ(tr.from,0); setLowEQ(tr.to,0);
+  setFilterUI(tr.from, 50); setFilterUI(tr.to, 50);   // undo any filter sweeps (and snap the sliders back to centre)
   echoUI(false);                // drop the Echo Out light (unless manual echo is on)
   setCrossfade(tr.to==='B'?1:0,true);
-  auto.curId=tr.to; auto.trans=null; auto.ddArmed=false; auto.mixPos=null; auto.teasePlan=null;
+  auto.curId=tr.to; auto.trans=null; auto.ddArmed=false; auto.mixPos=null; auto.teasePlan=null; auto._sangThisTrack=false;
   setSegEnd(tr.to);
-  applyRate(tr.to, targetBPMat(auto.progress()));   // ease the new track back onto the energy curve
+  dlog('mix-end',{style:tr.style||tr.mode, nowOn:tr.to});
+  startRateGlide(tr.to, targetBPMat(auto.progress()));   // glide back onto the energy curve — no pitch lurch
   updateNowPlaying();
   if(!auto.winding) preloadNext(tr.from);
+}
+/* post-mix tempo glide: the old behaviour snapped the new on-air track to the target BPM the
+   instant the blend ended — an audible pitch lurch. Now it rides there over a few seconds. */
+function startRateGlide(id,targetBPM){
+  const d=decks[id]; if(!d.bpm||!targetBPM) return;
+  const target=clamp(targetBPM/d.bpm,0.85,1.15);
+  if(Math.abs(target-d.rate)<0.0015){ setTempoUI(id,target); return; }
+  const dur=clamp(Math.abs(target-d.rate)*120, 1.5, 8);   // ~0.8%/s — a ride, not a lurch
+  auto.glide={id, r0:d.rate, target, t0:AC.currentTime, dur};
+}
+function tickRateGlide(){
+  const g=auto.glide; if(!g) return;
+  const p=clamp((AC.currentTime-g.t0)/g.dur,0,1);
+  setTempoUI(g.id, g.r0+(g.target-g.r0)*easeP(p,'smooth'));
+  if(p>=1) auto.glide=null;
 }
 
 function animateTransition(){
@@ -2554,18 +2864,14 @@ function animateTransition(){
       if(p>=1) finalizeTransition(tr);
       return;
     }
-    // blend / filter / echo / tops: crossfade with EQ bass-swap
-    setCrossfade(tr.to==='B'? p : 1-p, true);
-    if(tr.style==='tops'){
-      const sw=clamp((p-0.5)/0.5,0,1);                          // hats/tops layer first, bass handover in the 2nd half
-      setLowEQ(tr.from,-26*sw); setLowEQ(tr.to,-26*(1-sw));
-      setFilterUI(tr.to, 84-34*p);                              // open the incoming from tops → full (slider moves)
-    } else {
-      setLowEQ(tr.from,-26*p); setLowEQ(tr.to,-26*(1-p));
-    }
-    if(tr.style==='filter'){                                   // sweep the outgoing out through a closing lowpass
-      setFilterUI(tr.from, 50*(1-p));                          // moves the deck's Filter slider as it closes
-    }
+    // blend / filter / echo / tops: the audio is pre-scheduled (sample-accurate) —
+    // this just mirrors progress on the on-screen controls so you can watch it work
+    const e=easeP(p, tr.style==='echo'?'out':(tr.style==='filter'?'linear':'smooth'));
+    const f=document.getElementById('xfader'); if(document.activeElement!==f) f.value = tr.to==='B'? e : 1-e;
+    const sw=clamp((p-(tr.swapFrac||0.62))/0.12,0,1);          // bass handover indicator
+    uiLowVal(tr.from,-26*sw); uiLowVal(tr.to,-26*(1-sw));
+    if(tr.style==='filter') uiFiltVal(tr.from, 50*(1-p));
+    if(tr.style==='tops')   uiFiltVal(tr.to, 84-34*p);
     if(tr.style==='echo' && p>0.4 && !tr.echoUp){              // throw a beat-synced echo + reverb wash as it leaves
       tr.echoUp=true; const beatReal=60/decks[tr.from].effBPM;
       delay.delayTime.setTargetAtTime(beatReal*0.75,now,0.01);
@@ -2578,6 +2884,37 @@ function animateTransition(){
       if(tr.style==='echo'){ delayFb.gain.setTargetAtTime(0,now,0.4); delayWet.gain.setTargetAtTime(0,now,0.6); reverbWet.gain.setTargetAtTime(0,now,0.7); }
       finalizeTransition(tr);
     }
+    return;
+  }
+  // spinback: the zip-back is already scheduled — handle the bookkeeping and the slam
+  if(tr.mode==='spinback'){
+    if(!tr.cut && now>=tr.cutAt){
+      tr.cut=true; const fd=decks[tr.from];
+      fd.playing=false; fd.source=null; setPlayUI(tr.from,false);   // source already stopped on the audio clock
+    }
+    if(!tr.slammed && now>=tr.slamAt){
+      tr.slammed=true;
+      setCrossfade(tr.to==='B'?1:0,true); setLowEQ(tr.to,0);
+      autoFx('impact',now); downlifter(now); if(Math.random()<tune.fx) autoFx('airhorn',now);
+      tr.endAt=now+tr.beatReal;
+    }
+    if(tr.slammed && now>=tr.endAt) finalizeTransition(tr);
+    return;
+  }
+  // drop swap: the half-fade is scheduled — mirror the UI, then execute the kill at the drop
+  if(tr.mode==='dropswap'){
+    const p=clamp((now-tr.start)/(tr.dropAt-tr.start),0,1);
+    const f=document.getElementById('xfader');
+    if(document.activeElement!==f) f.value = tr.to==='B' ? 0.5*easeP(p,'smooth') : 1-0.5*easeP(p,'smooth');
+    if(!tr.killed && now>=tr.dropAt){
+      tr.killed=true;
+      setCrossfade(tr.to==='B'?1:0,true); setLowEQ(tr.to,0);
+      try{ decks[tr.from].pause(); }catch(e){} setPlayUI(tr.from,false);
+      autoFx('impact',now); downlifter(now);
+      if(auto.epic && Math.random()<tune.fx) autoFx('airhorn',now);
+      tr.endAt=now+tr.beatReal;
+    }
+    if(tr.killed && now>=tr.endAt) finalizeTransition(tr);
     return;
   }
   // loop build: advance through the halving stutter rolls, then release into the incoming
@@ -2607,7 +2944,7 @@ function animateTransition(){
       master.gain.cancelScheduledValues(now);
       master.gain.setValueAtTime(tr.restore, now);               // slam the room back on with the incoming
       setCrossfade(tr.to==='B'?1:0,true); setLowEQ(tr.to,0);
-      autoFx('airhorn',now); autoFx('impact',now);
+      autoFx('airhorn',now); autoFx('impact',now); downlifter(now);
       tr.endAt=now+tr.beatReal;
     }
     if(tr.slammed && now>=tr.endAt) finalizeTransition(tr);
@@ -2627,7 +2964,7 @@ function animateTransition(){
       if(tr.rolling){ stopRoll(tr.from); tr.rolling=false; }
       tr.slammed=true; tr.slamAt=now;
       setLowEQ(tr.from,0); setLowEQ(tr.to,0); setCrossfade(0.5,true);
-      autoFx('airhorn',now); if(auto.weapons) autoFx('siren',now+0.02);
+      autoFx('airhorn',now); if(auto.weapons) autoFx('siren',now+0.02); downlifter(now);
       toast('DOUBLE DROP!');
     }
   } else {
@@ -2639,6 +2976,23 @@ function animateTransition(){
       if(fp>=1) finalizeTransition(tr);
     }
   }
+}
+
+// big-room crowd moment: cut the music on a big vocal for one bar so the room sings it back,
+// then slam it in with an impact ("lower the volume at the popular lyric — they scream the rest")
+function crowdSing(d){
+  const beat=60/d.effBPM, t=d.nextBeatTime(0.06,4);          // cut on the bar
+  const restore=parseFloat(document.getElementById('masterVol').value);
+  auto._sangThisTrack=true; auto._singGate=AC.currentTime+75;
+  master.gain.cancelScheduledValues(t);
+  master.gain.setValueAtTime(restore,t);
+  master.gain.linearRampToValueAtTime(0.0001,t+0.05);        // the cut — crowd takes the hook
+  const back=t+4*beat;
+  master.gain.setValueAtTime(0.0001,back-0.02);
+  master.gain.linearRampToValueAtTime(restore,back+0.03);    // slam the room back in
+  impact(back);
+  dlog('fx','crowd-sing');
+  toast('🎤 CROWD — sing it!');
 }
 
 // ⚡ EPIC: autopilot rewind that re-drops at the last drop (keeps energy up), not the intro
@@ -2672,11 +3026,15 @@ function autoTick(){
   }catch(e){
     // Safety 2: an exception must never permanently stop the music — clear transient state and continue next tick.
     auto.trans=null; auto.mixPos=null; _recovering=false;
-    if(!autoTick._warned){ autoTick._warned=true; console.warn('autoTick recovered from an error (set continues):', e); }
+    dlog('error',{msg:String((e&&e.message)||e), stack:String((e&&e.stack)||'').slice(0,800)});
+    try{ idbSet('crashlog', JSON.stringify(diagSnapshot())); }catch(_){}
+    if(!autoTick._warned){ autoTick._warned=true; console.warn('autoTick recovered from an error (set continues):', e);
+      toast('⚠ recovered from an error — hit 🩺 Diag and send the file'); }
   }
 }
 function _autoTick(){
   if(auto.state!=='running'){ auto._lastTickAC=AC.currentTime; return; }
+  tickRateGlide();                       // ease the on-air tempo toward the energy curve
   // Detect a long stall: while the window is hidden, requestAnimationFrame pauses but the audio
   // clock keeps running. Without this, returning would find the playhead far past the planned
   // mix point and slam an instant "skip". On resume we resync gracefully instead.
@@ -2708,9 +3066,20 @@ function _autoTick(){
   if(!auto.winding){
     const ended = !cur.playing || cur.currentTime() >= playEnd(cur) - 0.05;
     if(ended){
+      // rate-limit recoveries, and if they keep happening treat it as a storm: hold the
+      // current track instead of endlessly cutting between (possibly broken) decks
+      if(AC.currentTime < (auto._wdCool||0)){ updateApStatus(); return; }
+      auto._wdCool=AC.currentTime+2;
+      auto._wdFires=(auto._wdFires||[]).filter(t=>AC.currentTime-t<30); auto._wdFires.push(AC.currentTime);
+      dlog('watchdog',{playing:cur.playing, pos:+cur.currentTime().toFixed(2), end:+playEnd(cur).toFixed(2), fires30s:auto._wdFires.length});
+      if(auto._wdFires.length>=4){
+        dlog('watchdog','recovery storm — replaying current track instead of cutting');
+        toast('⚠ recovery loop — holding this track');
+        replayCurrent(); updateApStatus(); return;
+      }
       const od = auto.curId==='A'?'B':'A';
       if(decks[od].buffer && decks[od].cued){
-        beginTransition(transDurNow(), AC.currentTime+0.05, 'cut');   // cued and ready → slam it in now
+        beginTransition(transDurNow(), AC.currentTime+0.05, 'cut', true);   // cued and ready → slam it in now (silent rescue)
       } else if(!_recovering){
         _recovering=true;
         preloadNext(od).finally(()=>{
@@ -2730,6 +3099,18 @@ function _autoTick(){
 
   // tease the incoming hook on the run-up to the mix (build anticipation)
   if(auto.weapons && cur.playing && !auto.winding) fireDueTeases(cur);
+
+  // crowd-sing moment: at peak, on a sustained vocal, cut the music for a bar (rare, once per track)
+  if(auto.weapons && !auto.winding && !auto.trans && !rewinding && cur.playing && !auto._sangThisTrack
+     && energyAt(p)>=0.85 && tNow>(auto.minPlay||0)*0.5 && AC.currentTime>(auto._singGate||0)
+     && auto.mixPos!=null && tNow < auto.mixPos-12*(60/cur.bpm)){
+    auto._singGate=AC.currentTime+8;                                  // only consider every ~8s
+    const beatTk=60/cur.bpm;
+    if(vocalAt(cur,tNow+0.1)>0.7 && vocalAt(cur,tNow+2*beatTk)>0.55 && vocalAt(cur,tNow+4*beatTk)>0.45
+       && Math.random()<tune.fx*0.3){
+      crowdSing(cur); updateApStatus(); return;
+    }
+  }
 
   // ⚡ EPIC: the occasional rewind-reload encore at a big peak — re-drop the banger
   if(auto.epic && auto.weapons && !auto.winding && !auto.ddArmed && !rewinding && cur.playing
@@ -2755,7 +3136,8 @@ function _autoTick(){
 
 function stopParty(fade){
   if(fade && auto.weapons) airhorn(AC.currentTime);
-  auto.state='stopped'; auto.trans=null;
+  dlog('party','stop');
+  auto.state='stopped'; auto.trans=null; auto.glide=null; keepAwake(false);
   document.getElementById('startBtn').textContent='▶ START PARTY';
   document.getElementById('startBtn').classList.remove('on');
   document.getElementById('apLive').classList.remove('on');
@@ -2811,7 +3193,7 @@ function updateNowPlaying(){
   }
   if(typeof renderWish==='function') renderWish();   // keep request fit/steer status live
 }
-function toast(m){ const el=document.getElementById('apMsg'); el.textContent=m; setTimeout(()=>{ if(el.textContent===m) el.textContent=''; },3200); }
+function toast(m){ const el=document.getElementById('apMsg'); el.textContent=m; if(typeof stageCallout==='function') stageCallout(m); setTimeout(()=>{ if(el.textContent===m) el.textContent=''; },3200); }
 
 /* ---- autopilot wiring ---- */
 document.getElementById('folderInput').addEventListener('change',e=>addFiles(e.target.files));
@@ -2900,6 +3282,188 @@ bind('rescanBtn','click',()=>scanFolderHandle(false));
 
 renderLibrary();
 
+/* ====================== Stage view — fullscreen party visuals ====================== */
+const stage=document.getElementById('stage'), stageCv=document.getElementById('stageCv'), stCtx=stageCv.getContext('2d');
+let stageOn=false, _stCalT=null, _stT=0, _stTxt=0;
+function toggleStage(on){
+  stageOn = on==null ? !stageOn : on;
+  stage.classList.toggle('hidden',!stageOn);
+  if(stageOn){ resumeCtx(); try{ if(stage.requestFullscreen) stage.requestFullscreen(); }catch(e){} }
+  else if(document.fullscreenElement){ try{ document.exitFullscreen(); }catch(e){} }
+}
+bind('stageBtn','click',()=>toggleStage());
+bind('stageClose','click',()=>toggleStage(false));
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&stageOn) toggleStage(false); });
+document.addEventListener('fullscreenchange',()=>{ if(!document.fullscreenElement && stageOn){ stageOn=false; stage.classList.add('hidden'); } });
+// big on-screen callout (mirrors toasts — transition names, DOUBLE DROP!, crowd-sing…)
+function stageCallout(msg){
+  if(!stageOn||!msg) return;
+  const el=document.getElementById('stCallout'); el.textContent=msg;
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  clearTimeout(_stCalT); _stCalT=setTimeout(()=>el.classList.remove('show'),2600);
+}
+function drawStage(){
+  const dpr=window.devicePixelRatio||1, W=stage.clientWidth, H=stage.clientHeight;
+  if(stageCv.width!==W*dpr||stageCv.height!==H*dpr){ stageCv.width=W*dpr; stageCv.height=H*dpr; }
+  stCtx.setTransform(dpr,0,0,dpr,0,0);
+  // audio features (vuData is refreshed from the master analyser every frame)
+  let bass=0,mid=0;
+  for(let i=1;i<10;i++) bass+=vuData[i]; bass/=9*255;
+  for(let i=10;i<60;i++) mid+=vuData[i]; mid/=50*255;
+  // beat phase straight off the on-air deck's beat grid
+  const d=decks[onAirDeck()]; let ph=0,bar=0;
+  if(d&&d.playing&&d.bpm){ const b=(d.currentTime()-d.beatOffset)*d.bpm/60; ph=((b%1)+1)%1; bar=Math.floor(((b%4)+4)%4); }
+  const kick=Math.pow(1-ph,3)*bass;
+  // motion trail
+  stCtx.fillStyle='rgba(0,0,6,'+(0.20+0.20*(1-bass)).toFixed(3)+')';
+  stCtx.fillRect(0,0,W,H);
+  const cx=W/2, cy=H*0.42, R=Math.min(W,H)*(0.15+kick*0.06);
+  // radial spectrum — deck A cyan / deck B magenta interleaved
+  const SP=96;
+  for(let i=0;i<SP;i++){
+    const v=vuData[Math.floor(1+i*(200/SP))]/255;
+    const a=(i/SP)*Math.PI*2 - Math.PI/2 + _stT*0.004;
+    const r1=R+8, r2=R+8+v*Math.min(W,H)*0.27;
+    stCtx.strokeStyle = i%2 ? 'rgba(25,246,232,'+(0.22+v*0.7).toFixed(3)+')' : 'rgba(255,46,154,'+(0.22+v*0.7).toFixed(3)+')';
+    stCtx.lineWidth=Math.max(1.5, W*0.0035);
+    stCtx.beginPath();
+    stCtx.moveTo(cx+Math.cos(a)*r1, cy+Math.sin(a)*r1);
+    stCtx.lineTo(cx+Math.cos(a)*r2, cy+Math.sin(a)*r2);
+    stCtx.stroke();
+  }
+  // kick core
+  const g=stCtx.createRadialGradient(cx,cy,0,cx,cy,Math.max(1,R));
+  g.addColorStop(0,'rgba(255,255,255,'+(0.30+kick*0.7).toFixed(3)+')');
+  g.addColorStop(0.55,'rgba(198,255,0,'+(0.16+kick*0.5).toFixed(3)+')');
+  g.addColorStop(1,'rgba(25,246,232,0)');
+  stCtx.fillStyle=g; stCtx.beginPath(); stCtx.arc(cx,cy,Math.max(1,R),0,Math.PI*2); stCtx.fill();
+  // downbeat room-flash
+  if(bar===0 && ph<0.12){ stCtx.fillStyle='rgba(255,255,255,'+(0.10*(1-ph/0.12)*bass).toFixed(3)+')'; stCtx.fillRect(0,0,W,H); }
+  _stT++;
+  // text at ~4Hz
+  const tn=performance.now();
+  if(tn-_stTxt>=250){
+    _stTxt=tn;
+    const onD=decks[onAirDeck()];
+    const e=auto.curId&&decks[auto.curId]? decks[auto.curId].entry : null;
+    document.getElementById('stTitle').textContent =
+      e ? (e.artist? e.artist+' – '+e.name : e.name)
+        : (onD&&onD.buffer? document.getElementById('name'+onD.id).textContent : 'SUBVERTER');
+    let sub='';
+    if(onD&&onD.effBPM) sub+=onD.effBPM.toFixed(0)+' BPM';
+    if(onD&&onD.camelot) sub+=(sub?'  ·  ':'')+camelotStr(onD.camelot);
+    if(auto.state==='running') sub+=(sub?'  ·  ':'')+sectionName(auto.progress());
+    document.getElementById('stSub').textContent=sub||'drop a crate · start the party';
+    const nx=document.getElementById('apNext');
+    document.getElementById('stNext').textContent=(auto.state==='running'&&nx&&nx.textContent!=='—')? ('next mix · '+nx.textContent) : '';
+  }
+}
+
+/* ====================== Screen wake lock — no sleeping mid-set ====================== */
+let _wake=null;
+async function keepAwake(on){
+  try{
+    if(on && 'wakeLock' in navigator && !_wake){
+      _wake=await navigator.wakeLock.request('screen');
+      _wake.addEventListener('release',()=>{ _wake=null; });
+    } else if(!on && _wake){ await _wake.release(); _wake=null; }
+  }catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&auto.state==='running') keepAwake(true); });
+
+/* ====================== Settings persistence — the rig comes back as you left it ====================== */
+let _setT=null;
+function saveSettings(){
+  clearTimeout(_setT);
+  _setT=setTimeout(()=>{ try{ idbSet('settings', JSON.stringify({
+    peakBpm:document.getElementById('peakBpm').value,
+    setLen:document.getElementById('setLen').value,
+    segLen:document.getElementById('segLen').value,
+    tune:{patience:tune.patience, adventure:tune.adventure, fx:tune.fx},
+    transBeats:auto.transBeats,
+    harmonic:auto.harmonic, weapons:auto.weapons, epic:auto.epic,
+    padMap
+  })).catch(()=>{}); }catch(e){} },400);
+}
+function applySeg(segId,hiddenId,val){
+  const seg=document.getElementById(segId); let hit=false;
+  seg.querySelectorAll('button').forEach(b=>{ const on=String(b.dataset.v)===String(val); b.classList.toggle('sel',on); if(on)hit=true; });
+  if(hit) document.getElementById(hiddenId).value=val;
+}
+async function loadSettings(){
+  let o=null; try{ o=JSON.parse((await idbGet('settings'))||'null'); }catch(e){}
+  if(!o) return;
+  try{
+    if(o.peakBpm){ document.getElementById('peakBpm').value=o.peakBpm; document.getElementById('peakBpmLbl').textContent=o.peakBpm; }
+    if(o.setLen) applySeg('setLenSeg','setLen',o.setLen);
+    if(o.segLen) applySeg('segSeg','segLen',o.segLen);
+    if(o.tune){
+      if(o.tune.patience!=null) tune.patience=o.tune.patience;
+      if(o.tune.adventure!=null) tune.adventure=o.tune.adventure;
+      if(o.tune.fx!=null) tune.fx=o.tune.fx;
+      document.getElementById('tunePatience').value=tune.patience;
+      document.getElementById('tPatV').textContent= tune.patience<0.34?'short': tune.patience>0.66?'long':'norm';
+      document.getElementById('tuneAdv').value=tune.adventure; document.getElementById('tAdvV').textContent=Math.round(tune.adventure*100)+'%';
+      document.getElementById('tuneFx').value=tune.fx; document.getElementById('tFxV').textContent=Math.round(tune.fx*100)+'%';
+    }
+    if(o.transBeats){ auto.transBeats=o.transBeats; document.getElementById('tuneBlend').value=o.transBeats; document.getElementById('tBlV').textContent=o.transBeats+' bt'; }
+    if(o.harmonic!=null){ auto.harmonic=!!o.harmonic; syncToggle('harmonicBtn',auto.harmonic); }
+    if(o.weapons!=null){ auto.weapons=!!o.weapons; syncToggle('autofxBtn',auto.weapons); }
+    if(o.epic!=null){ auto.epic=!!o.epic; syncToggle('epicBtn',auto.epic); }
+    if(o.padMap&&o.padMap.A&&o.padMap.B){ padMap.A=o.padMap.A; padMap.B=o.padMap.B; if(!document.getElementById('padPanel').classList.contains('hidden')) renderPads(); }
+    drawEnergy();
+  }catch(e){}
+}
+['peakBpm','tunePatience','tuneAdv','tuneFx','tuneBlend'].forEach(id=>bind(id,'input',saveSettings));
+['harmonicBtn','autofxBtn','epicBtn'].forEach(id=>bind(id,'click',saveSettings));
+document.getElementById('setLenSeg').addEventListener('click',saveSettings);
+document.getElementById('segSeg').addEventListener('click',saveSettings);
+loadSettings();
+
+/* ====================== Diagnostics black box ====================== */
+// A rolling log of everything the auto-DJ decides (mixes, watchdog fires, FX, errors).
+// 🩺 Diag saves it as a JSON file together with full engine/deck/crate state — if anything
+// ever goes weird mid-party, that file is the whole story.
+const DIAG=[];
+function dlog(tag,info){
+  try{
+    DIAG.push({t:+AC.currentTime.toFixed(3), wall:new Date().toISOString(), tag, info});
+    if(DIAG.length>400) DIAG.splice(0, DIAG.length-400);
+  }catch(e){}
+}
+function diagSnapshot(){
+  const dk=id=>{ const d=decks[id]; if(!d.buffer) return null;
+    return { name:(d.entry&&d.entry.name)||document.getElementById('name'+id).textContent,
+      bpm:d.bpm, rate:+d.rate.toFixed(4), playing:d.playing, cued:!!d.cued,
+      pos:+d.currentTime().toFixed(2), dur:+d.buffer.duration.toFixed(2),
+      audioEnd:d.audioEnd!=null?+d.audioEnd.toFixed(2):null,
+      drops:(d.drops||[]).map(x=>+x.toFixed(1)), key:camelotStr(d.camelot), trim:d.trimVal }; };
+  return {
+    app:'SUBVERTER', when:new Date().toISOString(), ua:navigator.userAgent, origin:location.protocol+'//'+location.host,
+    ac:{state:AC.state, sampleRate:AC.sampleRate, t:+AC.currentTime.toFixed(2), baseLatency:AC.baseLatency||null},
+    auto:{state:auto.state, curId:auto.curId, mixPos:auto.mixPos!=null?+auto.mixPos.toFixed(2):null, mixWhy:auto.mixWhy,
+          winding:auto.winding, harmonic:auto.harmonic, weapons:auto.weapons, epic:auto.epic,
+          progress:auto.state==='running'?+auto.progress().toFixed(3):null,
+          trans:auto.trans?{mode:auto.trans.mode, style:auto.trans.style, from:auto.trans.from, to:auto.trans.to}:null,
+          burst:auto._transBurst||0, coolUntil:auto._coolUntil||0, wdFires:(auto._wdFires||[]).length},
+    tune:{patience:tune.patience, adventure:tune.adventure, fx:tune.fx, transBeats:auto.transBeats},
+    decks:{A:dk('A'), B:dk('B')},
+    crate:{total:library.length, ready:readyTracks().length,
+           failed:library.filter(e=>e.status==='failed').map(e=>({name:e.name, why:e.failReason||''})).slice(0,40)},
+    log:DIAG.slice(-300)
+  };
+}
+async function dumpDiag(){
+  const snap=diagSnapshot();
+  try{ const prev=await idbGet('crashlog'); if(prev) snap.previousCrashSnapshot=JSON.parse(prev); }catch(e){}
+  const blob=new Blob([JSON.stringify(snap,null,1)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='subverter-diag-'+new Date().toISOString().replace(/[:.]/g,'-')+'.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+  toast('🩺 diagnostics saved to your downloads');
+}
+bind('diagBtn','click',dumpDiag);
 
 const vuFill=document.getElementById('vuFill');
 const vuData=new Uint8Array(masterAnalyser.frequencyBinCount);
@@ -2914,6 +3478,7 @@ function loop(){
   vuFill.style.right=(100-Math.min(100,rms*160))+'%';
 
   autoTick();                     // timing-critical — every frame
+  if(stageOn) drawStage();        // stage visuals run full-rate even in Lite mode — they ARE the show
 
   // keep a latched loop's reported playhead wrapped inside the loop region (audio is looped by the source)
   ['A','B'].forEach(id=>{ const d=decks[id]; if(d._loopLen && d._loopStart!=null){ let g=0; while(d.currentTime()>=d._loopStart+d._loopLen && g++<64) d.offset-=d._loopLen; } });
